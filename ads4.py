@@ -45,7 +45,7 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
 def download_images(images_with_text, text_idx, image_size, font_size):
     for idx, image in enumerate(images_with_text):
         # Display the image with its actual dimensions in the app view
-        st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=True)
+        st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", width=image.width)
 
         # Download link for the image
         buffered = BytesIO()
