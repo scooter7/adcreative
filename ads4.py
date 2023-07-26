@@ -88,45 +88,46 @@ def main():
     selected_positions = [position for position in positions if st.checkbox(position.title())]
 
     image_sizes = {
-    "468 x 60": (468, 60),
-    "728 x 90": (728, 90),
-    "970 x 90": (970, 90),
-    "320 x 50": (320, 50),
-    "250 x 250": (250, 250),
-    "200 x 200": (200, 200),
-    "300 x 250": (300, 250),
-    "336 x 280": (336, 280),
-}
+        "468 x 60": (468, 60),
+        "728 x 90": (728, 90),
+        "970 x 90": (970, 90),
+        "320 x 50": (320, 50),
+        "250 x 250": (250, 250),
+        "200 x 200": (200, 200),
+        "300 x 250": (300, 250),
+        "336 x 280": (336, 280),
+    }
     selected_image_sizes = [size for size, selected in image_sizes.items() if st.checkbox(size)]
 
     position_mapping = {
-    "top-left": (10, 10),
-    "top-center": ("center", 10),
-    "top-right": (None, 10),
-    "bottom-left": (10, None),
-    "bottom-center": ("center", "bottom"),
-    "bottom-right": (None, None),
-    "center": ("center", "center"),
-}
+        "top-left": (10, 10),
+        "top-center": ("center", 10),
+        "top-right": (None, 10),
+        "bottom-left": (10, None),
+        "bottom-center": ("center", "bottom"),
+        "bottom-right": (None, None),
+        "center": ("center", "center"),
+    }
 
     if st.button("Merge and Download"):
         if uploaded_images:
             for text_idx, text in enumerate(texts):
                 for font_size in font_sizes:
-                    images_with_text = []
-                    for image in uploaded_images:
-                        img = Image.open(image)
-                        for position in selected_positions:
-                            for selected_size in selected_image_sizes:
-                                image_size = image_sizes[selected_size]
-                                resized_img = img.copy()
-                                resized_img.thumbnail(image_size)
-                                for text_color in text_colors:
-                                    for bg_color in bg_colors:
+                    for text_color in text_colors:
+                        for bg_color in bg_colors:
+                            for position in selected_positions:
+                                images_with_text = []
+                                for image in uploaded_images:
+                                    img = Image.open(image)
+                                    for selected_size in selected_image_sizes:
+                                        image_size = image_sizes[selected_size]
+                                        resized_img = img.copy()
+                                        resized_img.thumbnail(image_size)
                                         merged_img = merge_text_with_image(resized_img, text, font_size, text_color, bg_color, position, position_mapping)
                                         images_with_text.append(merged_img)
 
-                    download_images(images_with_text, text_idx, selected_size, font_size, image_sizes)
+                                # Move this function call here
+                                download_images(images_with_text, text_idx, selected_size, font_size, image_sizes)
 
 if __name__ == "__main__":
     main()
