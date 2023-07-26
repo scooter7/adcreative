@@ -47,7 +47,7 @@ def download_images(images_with_text, text_idx, selected_size_label, font_size, 
     image_size = image_sizes[selected_size_label]
     for idx, image in enumerate(images_with_text):
         image = image.resize(image_size, Image.ANTIALIAS)
-        st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=True)
+        st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=False)
 
         buffered = BytesIO()
         image.save(buffered, format="PNG")
