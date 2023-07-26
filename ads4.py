@@ -43,7 +43,8 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
 
     return img
 
-def download_images(images_with_text, text_idx, image_size, font_size):
+def download_images(images_with_text, text_idx, selected_size_label, font_size):
+    image_size = image_sizes[selected_size_label]
     for idx, image in enumerate(images_with_text):
         image = image.resize(image_size, Image.ANTIALIAS)
         st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=True)
@@ -51,7 +52,7 @@ def download_images(images_with_text, text_idx, image_size, font_size):
         buffered = BytesIO()
         image.save(buffered, format="PNG")
         img_str = base64.b64encode(buffered.getvalue()).decode()
-        href = f'<a href="data:file/png;base64,{img_str}" download="text_image_{text_idx}_{image_size}_font_size_{font_size}.png">Download Image {idx + 1}</a>'
+        href = f'<a href="data:file/png;base64,{img_str}" download="text_image_{text_idx}_{selected_size_label}_font_size_{font_size}.png">Download Image {idx + 1}</a>'
         st.markdown(href, unsafe_allow_html=True)
 
 def main():
