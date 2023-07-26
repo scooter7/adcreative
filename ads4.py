@@ -43,17 +43,18 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
 
     return img
 
-def download_images(images_with_text, text_idx, selected_size_label, font_size, image_sizes):
+def download_images(images_with_text, text_idx, selected_sizes, font_size, image_sizes):
     for idx, image in enumerate(images_with_text):
-        image_size = image_sizes[selected_size_label]  # Get the selected size using the correct label
-        image = image.resize(image_size, Image.ANTIALIAS)
-        st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=False)
+        for selected_size_label in selected_sizes:
+            image_size = image_sizes[selected_size_label]
+            image = image.resize(image_size, Image.ANTIALIAS)
+            st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=False)
 
-        buffered = BytesIO()
-        image.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
-        href = f'<a href="data:file/png;base64,{img_str}" download="text_image_{text_idx}_{selected_size_label}_font_size_{font_size}.png">Download Image {idx + 1}</a>'
-        st.markdown(href, unsafe_allow_html=True)
+            buffered = BytesIO()
+            image.save(buffered, format="PNG")
+            img_str = base64.b64encode(buffered.getvalue()).decode()
+            href = f'<a href="data:file/png;base64,{img_str}" download="text_image_{text_idx}_{selected_size_label}_font_size_{font_size}.png">Download Image {idx + 1}</a>'
+            st.markdown(href, unsafe_allow_html=True)
 
 def main():
     st.title("Image Text Overlay App")
@@ -71,7 +72,7 @@ def main():
     if text_color_white:
         text_colors.append((255, 255, 255))
 
-    bg_colors = [None]  # Add None for the "No Background" option
+    bg_colors = [None]
     bg_color_black = st.checkbox("Text Background Area (Black)")
     if bg_color_black:
         bg_colors.append((0, 0, 0))
@@ -119,14 +120,13 @@ def main():
                                 images_with_text = []
                                 for image in uploaded_images:
                                     img = Image.open(image)
-                                    for selected_size_label, selected_size in image_sizes.items():
+                                    for selected_size_label in selected_image_sizes:
                                         resized_img = img.copy()
-                                        resized_img.thumbnail(selected_size)
+                                        resized_img.thumbnail(image_sizes[selected_size_label])
                                         merged_img = merge_text_with_image(resized_img, text, font_size, text_color, bg_color, position, position_mapping)
                                         images_with_text.append(merged_img)
 
-                                        # Move this function call here and pass the correct selected_size_label
-                                        download_images(images_with_text, text_idx, selected_size_label, font_size, image_sizes)
+                                download_images(images_with_text, text_idx, selected_image_sizes, font_size, image_sizes)
 
 if __name__ == "__main__":
     main()
