@@ -90,15 +90,15 @@ def main():
     selected_positions = [position for position in positions if st.checkbox(position.title())]
 
     image_sizes = {
-        "468 x 60": (468, 60),
-        "728 x 90": (728, 90),
-        "970 x 90": (970, 90),
-        "320 x 50": (320, 50),
-        "250 x 250": (250, 250),
-        "200 x 200": (200, 200),
-        "300 x 250": (300, 250),
-        "336 x 280": (336, 280),
-    }
+    "468 x 60": (468, 60),
+    "728 x 90": (728, 90),
+    "970 x 90": (970, 90),
+    "320 x 50": (320, 50),
+    "250 x 250": (250, 250),
+    "200 x 200": (200, 200),
+    "300 x 250": (300, 250),
+    "336 x 280": (336, 280),
+}
     selected_image_sizes = [size for size, selected in image_sizes.items() if st.checkbox(size)]
 
     position_mapping = {
