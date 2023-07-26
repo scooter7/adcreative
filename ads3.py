@@ -3,12 +3,12 @@ import streamlit as st
 import base64
 from io import BytesIO
 
-DEFAULT_FONT_PATH = ImageFont.load_default()
+DEFAULT_FONT_NAME = "FreeMono"  # Default font provided by Pillow
 
 def merge_text_with_image(image, text, font_size, text_color, bg_color, position, position_mapping):
     img = image.copy()
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
+    font = ImageFont.truetype(DEFAULT_FONT_NAME, font_size)
     text_width, text_height = draw.textsize(text, font=font)
 
     if position == "center":
