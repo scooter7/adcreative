@@ -7,21 +7,16 @@ from io import BytesIO
 def merge_text_with_image(image, text, font_size, text_color, bg_color, position, position_mapping):
     img = image.copy()
     draw = ImageDraw.Draw(img)
-
-    font = ImageFont.truetype("arial.ttf", font_size)
+    font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
     text_width, text_height = draw.textsize(text, font=font)
 
-    if position == "center":
+    if position == "bottom-center":
         img_width, img_height = img.size
         x = (img_width - text_width) // 2
-        y = (img_height - text_height) // 2
+        y = img_height - text_height
     else:
-        if isinstance(position, tuple):
-            x, y = position
-        else:
-            x, y = position_mapping[position]
+        x, y = position_mapping[position]
 
-        # Convert x and y coordinates to integers, if possible
         try:
             x = int(x)
         except (ValueError, TypeError):
@@ -32,11 +27,11 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
         except (ValueError, TypeError):
             y = None
 
-    if x is None:  # Handle "center" position for x-coordinate
+    if x is None:
         img_width, _ = img.size
         x = (img_width - text_width) // 2
 
-    if y is None:  # Handle "center" position for y-coordinate
+    if y is None:
         _, img_height = img.size
         y = (img_height - text_height) // 2
 
@@ -45,6 +40,7 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
     draw.text((x, y), text, font=font, fill=text_color)
 
     return img
+
 
 def download_images(images_with_text, text_idx, image_size, font_size):
     for idx, image in enumerate(images_with_text):
