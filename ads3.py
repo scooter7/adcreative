@@ -104,7 +104,7 @@ def main():
     "top-center": ("center", 10),
     "top-right": (None, 10),
     "bottom-left": (10, None),
-    "bottom-center": ("center", 0),
+    "bottom-center": (0, "center"),
     "bottom-right": (None, None),
     "center": ("center", "center"),
 }
