@@ -45,10 +45,10 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
 def download_images(images_with_text, text_idx, image_size, font_size):
     for idx, image in enumerate(images_with_text):
         # Resize the image to the desired image size
-        image = image.resize(image_size, Image.ANTIALIAS)
+        image = image.resize(image_sizes[image_size], Image.ANTIALIAS)
 
         # Display the image with its actual dimensions in the app view
-        st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", width=image.width)
+        st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=True)
 
         # Download link for the image
         buffered = BytesIO()
