@@ -126,6 +126,7 @@ def main():
                                         merged_img = merge_text_with_image(resized_img, text, font_size, text_color, bg_color, position, position_mapping)
                                         images_with_text.append(merged_img)
 
+                                # Move this function call here
                                 download_images(images_with_text, text_idx, selected_size, font_size, image_sizes)
 
 if __name__ == "__main__":
