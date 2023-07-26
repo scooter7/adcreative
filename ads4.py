@@ -4,10 +4,12 @@ import streamlit as st
 import base64
 from io import BytesIO
 
+DEFAULT_FONT_PATH = "arial.ttf"
+
 def merge_text_with_image(image, text, font_size, text_color, bg_color, position, position_mapping):
     img = image.copy()
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype("arial.ttf", font_size)
+    font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
     text_width, text_height = draw.textsize(text, font=font)
 
     if position == "bottom-center":
@@ -41,17 +43,11 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
 
     return img
 
-
 def download_images(images_with_text, text_idx, image_size, font_size):
-    print(f"Selected Image Size: {image_size}")  # Add this line to check the selected size
     for idx, image in enumerate(images_with_text):
-        # Resize the image to the desired image size
-        image = image.resize(image_sizes[image_size], Image.ANTIALIAS)
-
-        # Display the image with its actual dimensions in the app view
+        image = image.resize(image_size, Image.ANTIALIAS)
         st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=True)
 
-        # Download link for the image
         buffered = BytesIO()
         image.save(buffered, format="PNG")
         img_str = base64.b64encode(buffered.getvalue()).decode()
@@ -91,26 +87,26 @@ def main():
     selected_positions = [position for position in positions if st.checkbox(position.title())]
 
     image_sizes = {
-    "468 x 60": (468, 60),
-    "728 x 90": (728, 90),
-    "970 x 90": (970, 90),
-    "320 x 50": (320, 50),
-    "250 x 250": (250, 250),
-    "200 x 200": (200, 200),
-    "300 x 250": (300, 250),
-    "336 x 280": (336, 280),
-}
+        "468 x 60": (468, 60),
+        "728 x 90": (728, 90),
+        "970 x 90": (970, 90),
+        "320 x 50": (320, 50),
+        "250 x 250": (250, 250),
+        "200 x 200": (200, 200),
+        "300 x 250": (300, 250),
+        "336 x 280": (336, 280),
+    }
     selected_image_sizes = [size for size, selected in image_sizes.items() if st.checkbox(size)]
 
     position_mapping = {
-    "top-left": (10, 10),
-    "top-center": ("center", 10),
-    "top-right": (None, 10),
-    "bottom-left": (10, None),
-    "bottom-center": ("center", "bottom"),
-    "bottom-right": (None, None),
-    "center": ("center", "center"),
-}
+        "top-left": (10, 10),
+        "top-center": ("center", 10),
+        "top-right": (None, 10),
+        "bottom-left": (10, None),
+        "bottom-center": ("center", "bottom"),
+        "bottom-right": (None, None),
+        "center": ("center", "center"),
+    }
 
     if st.button("Merge and Download"):
         if uploaded_images:
