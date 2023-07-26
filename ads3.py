@@ -7,7 +7,7 @@ from io import BytesIO
 def merge_text_with_image(image, text, font_size, text_color, bg_color, position, position_mapping):
     img = image.copy()
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
+    font = ImageFont.truetype("arial.ttf", font_size)
     text_width, text_height = draw.textsize(text, font=font)
 
     if position == "bottom-center":
