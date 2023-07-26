@@ -1,11 +1,9 @@
-import os
 from PIL import Image, ImageDraw, ImageFont
 import streamlit as st
 import base64
 from io import BytesIO
 
-DEFAULT_FONT_NAME = "FreeMono"  # Default font provided by Pillow
-DEFAULT_FONT_PATH = os.path.join(ImageFont.truetype(DEFAULT_FONT_NAME, 1).font.filename)
+DEFAULT_FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 def merge_text_with_image(image, text, font_size, text_color, bg_color, position, position_mapping):
     img = image.copy()
