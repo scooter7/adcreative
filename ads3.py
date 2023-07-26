@@ -4,7 +4,7 @@ import streamlit as st
 import base64
 from io import BytesIO
 
-# Get the full path to the default font file included with Pillow
+DEFAULT_FONT_NAME = "FreeMono"  # Default font provided by Pillow
 DEFAULT_FONT_PATH = os.path.join(ImageFont.truetype(DEFAULT_FONT_NAME, 1).font.filename)
 
 def merge_text_with_image(image, text, font_size, text_color, bg_color, position, position_mapping):
