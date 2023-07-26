@@ -43,6 +43,7 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
 
 
 def download_images(images_with_text, text_idx, image_size, font_size):
+    print(f"Selected Image Size: {image_size}")  # Add this line to check the selected size
     for idx, image in enumerate(images_with_text):
         # Resize the image to the desired image size
         image = image.resize(image_sizes[image_size], Image.ANTIALIAS)
