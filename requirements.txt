@@ -155,7 +155,6 @@ python-multipart==0.0.6
 python-socketio==5.8.0
 pytz==2023.3
 pytz-deprecation-shim==0.1.0.post0
-pywin32==306
 pywin32-ctypes==0.2.1
 PyYAML==6.0
 rapidfuzz==2.15.1
