@@ -6,54 +6,9 @@ from io import BytesIO
 
 DEFAULT_FONT_PATH = "arial.ttf"
 
-def merge_text_with_image(image, text, font_size, text_color, bg_color, position, position_mapping):
-    img = image.copy()
-    draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
-    text_width, text_height = draw.textsize(text, font=font)
+# The merge_text_with_image function here
 
-    if position == "bottom-center":
-        img_width, img_height = img.size
-        x = (img_width - text_width) // 2
-        y = img_height - text_height
-    else:
-        x, y = position_mapping[position]
-
-        try:
-            x = int(x)
-        except (ValueError, TypeError):
-            x = None
-
-        try:
-            y = int(y)
-        except (ValueError, TypeError):
-            y = None
-
-    if x is None:
-        img_width, _ = img.size
-        x = (img_width - text_width) // 2
-
-    if y is None:
-        _, img_height = img.size
-        y = (img_height - text_height) // 2
-
-    if bg_color is not None:
-        draw.rectangle([x, y, x + text_width, y + text_height], fill=bg_color)
-    draw.text((x, y), text, font=font, fill=text_color)
-
-    return img
-
-def download_images(images_with_text, text_idx, selected_size_label, font_size, image_sizes):
-    for idx, image in enumerate(images_with_text):
-        image_size = image_sizes[selected_size_label]  # Get the selected size using the correct label
-        image = image.resize(image_size, Image.ANTIALIAS)
-        st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=False)
-
-        buffered = BytesIO()
-        image.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
-        href = f'<a href="data:file/png;base64,{img_str}" download="text_image_{text_idx}_{selected_size_label}_font_size_{font_size}.png">Download Image {idx + 1}</a>'
-        st.markdown(href, unsafe_allow_html=True)
+# The download_images function here
 
 def main():
     st.title("Image Text Overlay App")
@@ -119,15 +74,14 @@ def main():
                                 images_with_text = []
                                 for image in uploaded_images:
                                     img = Image.open(image)
-                                    for selected_size in selected_image_sizes:
-                                        image_size = image_sizes[selected_size]
+                                    for selected_size_label, selected_size in image_sizes.items():
                                         resized_img = img.copy()
-                                        resized_img.thumbnail(image_size)
+                                        resized_img.thumbnail(selected_size)
                                         merged_img = merge_text_with_image(resized_img, text, font_size, text_color, bg_color, position, position_mapping)
                                         images_with_text.append(merged_img)
 
-                                # Move this function call here
-                                download_images(images_with_text, text_idx, selected_size, font_size, image_sizes)
+                                        # Move this function call here and pass the correct selected_size_label
+                                        download_images(images_with_text, text_idx, selected_size_label, font_size, image_sizes)
 
 if __name__ == "__main__":
     main()
