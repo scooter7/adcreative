@@ -62,8 +62,12 @@ def main():
     num_texts = st.number_input("Enter the number of text fields", min_value=1, step=1)
     texts = [st.text_input(f"Enter text {i + 1}") for i in range(num_texts)]
     
-    text_colors = [(0, 0, 0), (255, 255, 255)]
-    bg_colors = [(255, 255, 255), (0, 0, 0)]
+    text_color_bg_combinations = {
+        "White Text with Black Background": ((255, 255, 255), (0, 0, 0)),
+        "Black Text with White Background": ((0, 0, 0), (255, 255, 255))
+    }
+    
+    selected_combinations = [combo for combo, _ in text_color_bg_combinations.items() if st.checkbox(combo)]
     
     font_sizes = [st.slider(f"Text Font Size {i + 1}", 10, 100, 40, step=1) for i in range(st.number_input("Enter the number of font sizes", min_value=1, step=1))]
 
@@ -80,7 +84,7 @@ def main():
         "300 x 250": (300, 250),
         "336 x 280": (336, 280),
     }
-    selected_image_sizes = [size for size, selected in image_sizes.items() if st.checkbox(size)]
+    selected_image_sizes = [size for size, _ in image_sizes.items() if st.checkbox(size)]
 
     position_mapping = {
         "top-left": (10, 10),
@@ -96,7 +100,8 @@ def main():
         if uploaded_images:
             for text_idx, text in enumerate(texts):
                 for font_size in font_sizes:
-                    for text_color, bg_color in zip(text_colors, bg_colors):
+                    for combo in selected_combinations:
+                        text_color, bg_color = text_color_bg_combinations[combo]
                         for position in selected_positions:
                             images_with_text = []
                             for image in uploaded_images:
@@ -106,7 +111,6 @@ def main():
                                     resized_img.thumbnail(image_sizes[selected_size_label])
                                     merged_img = merge_text_with_image(resized_img, text, font_size, text_color, bg_color, position, position_mapping)
                                     images_with_text.append(merged_img)
-
                             download_images(images_with_text, text_idx, selected_image_sizes, font_size, image_sizes)
 
 if __name__ == "__main__":
