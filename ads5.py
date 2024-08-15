@@ -6,15 +6,30 @@ from io import BytesIO
 
 DEFAULT_FONT_PATH = "arial.ttf"
 
-def merge_text_with_image(image, texts, font_sizes, text_colors, bg_colors, positions, position_mapping):
+def calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage):
+    max_width = img_width * width_percentage
+    max_height = img_height * height_percentage
+    font_size = 1
+    font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
+
+    while True:
+        text_width, text_height = draw.textsize(text, font=font)
+        if text_width > max_width or text_height > max_height:
+            break
+        font_size += 1
+        font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
+
+    return font_size - 1  # Use the last valid size
+
+def merge_text_with_image(image, texts, width_percentages, height_percentages, text_colors, bg_colors, positions, position_mapping):
     img = image.copy()
     draw = ImageDraw.Draw(img)
-    
-    for text, font_size, text_color, bg_color, position in zip(texts, font_sizes, text_colors, bg_colors, positions):
+    img_width, img_height = img.size
+
+    for text, width_percentage, height_percentage, text_color, bg_color, position in zip(texts, width_percentages, height_percentages, text_colors, bg_colors, positions):
+        font_size = calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage)
         font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
         text_width, text_height = draw.textsize(text, font=font)
-
-        img_width, img_height = img.size
 
         if position == "top-left":
             x = 10
@@ -106,13 +121,15 @@ def main():
         st.write("Logo uploaded successfully!")
 
     call_to_action_text = st.text_input("Call to Action Text")
-    call_to_action_font_size = st.slider("Call to Action Font Size", 10, 100, 40, step=1)
+    call_to_action_width_percentage = st.slider("Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
+    call_to_action_height_percentage = st.slider("Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
     call_to_action_position = st.selectbox("Call to Action Position", ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"])
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
     call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
 
     description_text = st.text_input("Description Text")
-    description_font_size = st.slider("Description Font Size", 10, 100, 40, step=1)
+    description_width_percentage = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
+    description_height_percentage = st.slider("Description Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
     description_position = st.selectbox("Description Position", ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"])
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
     description_bg_color = st.color_picker("Description Background Color", "#000000")
@@ -160,11 +177,12 @@ def main():
             for image in uploaded_images:
                 img = Image.open(image)
                 texts = [call_to_action_text, description_text]
-                font_sizes = [call_to_action_font_size, description_font_size]
+                width_percentages = [call_to_action_width_percentage, description_width_percentage]
+                height_percentages = [call_to_action_height_percentage, description_height_percentage]
                 positions = [call_to_action_position, description_position]
                 text_colors = [call_to_action_text_color, description_text_color]
                 bg_colors = [call_to_action_bg_color, description_bg_color]
-                merged_img = merge_text_with_image(img, texts, font_sizes, text_colors, bg_colors, positions, position_mapping)
+                merged_img = merge_text_with_image(img, texts, width_percentages, height_percentages, text_colors, bg_colors, positions, position_mapping)
                 
                 if uploaded_logo:
                     logo_img = Image.open(uploaded_logo)
