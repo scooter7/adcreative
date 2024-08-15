@@ -6,17 +6,14 @@ from io import BytesIO
 
 DEFAULT_FONT_PATH = "arial.ttf"
 
-def merge_text_with_image(image, text, font_size, text_color, bg_color, position, position_mapping):
+def merge_text_with_image(image, texts, font_sizes, text_colors, bg_colors, positions, position_mapping):
     img = image.copy()
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
-    text_width, text_height = draw.textsize(text, font=font)
+    
+    for text, font_size, text_color, bg_color, position in zip(texts, font_sizes, text_colors, bg_colors, positions):
+        font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
+        text_width, text_height = draw.textsize(text, font=font)
 
-    if position == "bottom-center":
-        img_width, img_height = img.size
-        x = (img_width - text_width) // 2
-        y = img_height - text_height
-    else:
         x, y = position_mapping[position]
 
         try:
@@ -29,16 +26,16 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
         except (ValueError, TypeError):
             y = None
 
-    if x is None:
-        img_width, _ = img.size
-        x = (img_width - text_width) // 2
+        if x is None:
+            img_width, _ = img.size
+            x = (img_width - text_width) // 2
 
-    if y is None:
-        _, img_height = img.size
-        y = (img_height - text_height) // 2
+        if y is None:
+            _, img_height = img.size
+            y = (img_height - text_height) // 2
 
-    draw.rectangle([x, y, x + text_width, y + text_height], fill=bg_color)
-    draw.text((x, y), text, font=font, fill=text_color)
+        draw.rectangle([x, y, x + text_width, y + text_height], fill=bg_color)
+        draw.text((x, y), text, font=font, fill=text_color)
 
     return img
 
@@ -102,9 +99,10 @@ def main():
     if uploaded_logo:
         st.write("Logo uploaded successfully!")
 
-    num_texts = st.number_input("Enter the number of text fields", min_value=1, step=1)
-    texts = [st.text_input(f"Enter text {i + 1}") for i in range(num_texts)]
-    
+    # Input fields for Call to Action and Description
+    call_to_action = st.text_input("Enter Call to Action")
+    description = st.text_input("Enter Description")
+
     text_color_bg_combinations = {
         "White Text with Black Background": ((255, 255, 255), (0, 0, 0)),
         "Black Text with White Background": ((0, 0, 0), (255, 255, 255))
@@ -112,13 +110,13 @@ def main():
     
     selected_combinations = [combo for combo, _ in text_color_bg_combinations.items() if st.checkbox(combo)]
     
-    font_sizes = [st.slider(f"Text Font Size {i + 1}", 10, 100, 40, step=1) for i in range(st.number_input("Enter the number of font sizes", min_value=1, step=1))]
+    font_size = st.slider("Text Font Size", 10, 100, 40, step=1)
 
     positions = ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"]
-    selected_positions = [position for position in positions if st.checkbox(position.title())]
+    selected_position = st.selectbox("Select Text Position", positions)
 
     logo_positions = ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"]
-    selected_logo_position = st.selectbox("Select logo position", logo_positions)
+    selected_logo_position = st.selectbox("Select Logo Position", logo_positions)
 
     image_sizes = {
         "468 x 60": (468, 60),
@@ -157,27 +155,28 @@ def main():
     if st.button("Merge and Download"):
         if uploaded_images:
             st.write("Processing images...")
-            for text_idx, text in enumerate(texts):
-                for font_size in font_sizes:
-                    for combo in selected_combinations:
-                        text_color, bg_color = text_color_bg_combinations[combo]
-                        for position in selected_positions:
-                            images_with_text = []
-                            for image in uploaded_images:
-                                img = Image.open(image)
-                                st.write(f"Processing image {image.name} with text '{text}' at position '{position}'")
-                                for selected_size_label in selected_image_sizes:
-                                    resized_img = img.copy()
-                                    resized_img.thumbnail(image_sizes[selected_size_label])
-                                    merged_img = merge_text_with_image(resized_img, text, font_size, text_color, bg_color, position, position_mapping)
-                                    
-                                    if uploaded_logo:
-                                        logo_img = Image.open(uploaded_logo)
-                                        st.write(f"Overlaying logo on image {image.name}")
-                                        merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, logo_mapping)
-                                    
-                                    images_with_text.append(merged_img)
-                            download_images(images_with_text, text_idx, selected_image_sizes, font_size, image_sizes)
+            texts = [call_to_action, description]
+            text_colors = [text_color_bg_combinations[combo][0] for combo in selected_combinations]
+            bg_colors = [text_color_bg_combinations[combo][1] for combo in selected_combinations]
+            positions = [selected_position, selected_position]
+            font_sizes = [font_size, font_size]
+            
+            for image in uploaded_images:
+                images_with_text = []
+                img = Image.open(image)
+                st.write(f"Processing image {image.name} with Call to Action and Description")
+                for selected_size_label in selected_image_sizes:
+                    resized_img = img.copy()
+                    resized_img.thumbnail(image_sizes[selected_size_label])
+                    merged_img = merge_text_with_image(resized_img, texts, font_sizes, text_colors, bg_colors, positions, position_mapping)
+                    
+                    if uploaded_logo:
+                        logo_img = Image.open(uploaded_logo)
+                        st.write(f"Overlaying logo on image {image.name}")
+                        merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, logo_mapping)
+                    
+                    images_with_text.append(merged_img)
+                download_images(images_with_text, 0, selected_image_sizes, font_size, image_sizes)
             st.write("Images processed and available for download!")
 
 if __name__ == "__main__":
