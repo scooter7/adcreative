@@ -14,17 +14,22 @@ def merge_text_with_image(image, texts, font_sizes, text_colors, bg_colors, posi
         font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
         text_width, text_height = draw.textsize(text, font=font)
 
-        x, y = position_mapping[position]
+        if position == "bottom-center":
+            img_width, img_height = img.size
+            x = (img_width - text_width) // 2
+            y = img_height - text_height
+        else:
+            x, y = position_mapping[position]
 
-        try:
-            x = int(x)
-        except (ValueError, TypeError):
-            x = None
+            try:
+                x = int(x)
+            except (ValueError, TypeError):
+                x = None
 
-        try:
-            y = int(y)
-        except (ValueError, TypeError):
-            y = None
+            try:
+                y = int(y)
+            except (ValueError, TypeError):
+                y = None
 
         if x is None:
             img_width, _ = img.size
@@ -74,17 +79,17 @@ def overlay_logo(image, logo, logo_position, logo_mapping, max_logo_size_ratio=0
     
     return img.convert("RGB")  # Convert back to RGB if you don't need alpha
 
-def download_images(images_with_text, text_idx, selected_sizes, font_size, image_sizes):
+def download_images(images_with_text, text_idx, selected_sizes, image_sizes):
     for idx, image in enumerate(images_with_text):
         for selected_size_label in selected_sizes:
             image_size = image_sizes[selected_size_label]
             image = image.resize(image_size, Image.ANTIALIAS)
-            st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=False)
+            st.image(image, caption=f"Image {idx + 1}", use_column_width=False)
 
             buffered = BytesIO()
             image.save(buffered, format="PNG")
             img_str = base64.b64encode(buffered.getvalue()).decode()
-            href = f'<a href="data:file/png;base64,{img_str}" download="text_image_{text_idx}_{selected_size_label}_font_size_{font_size}.png">Download Image {idx + 1}</a>'
+            href = f'<a href="data:file/png;base64,{img_str}" download="image_{text_idx}_{selected_size_label}.png">Download Image {idx + 1}</a>'
             st.markdown(href, unsafe_allow_html=True)
 
 def main():
@@ -99,24 +104,24 @@ def main():
     if uploaded_logo:
         st.write("Logo uploaded successfully!")
 
-    # Input fields for Call to Action and Description
-    call_to_action = st.text_input("Enter Call to Action")
-    description = st.text_input("Enter Description")
+    call_to_action_text = st.text_input("Call to Action Text")
+    call_to_action_font_size = st.slider("Call to Action Font Size", 10, 100, 40, step=1)
+    call_to_action_position = st.selectbox("Call to Action Position", ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"])
+
+    description_text = st.text_input("Description Text")
+    description_font_size = st.slider("Description Font Size", 10, 100, 40, step=1)
+    description_position = st.selectbox("Description Position", ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"])
 
     text_color_bg_combinations = {
         "White Text with Black Background": ((255, 255, 255), (0, 0, 0)),
         "Black Text with White Background": ((0, 0, 0), (255, 255, 255))
     }
     
-    selected_combinations = [combo for combo, _ in text_color_bg_combinations.items() if st.checkbox(combo)]
-    
-    font_size = st.slider("Text Font Size", 10, 100, 40, step=1)
-
-    positions = ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"]
-    selected_position = st.selectbox("Select Text Position", positions)
+    selected_combination = st.selectbox("Select Text and Background Color Combination", list(text_color_bg_combinations.keys()))
+    text_color, bg_color = text_color_bg_combinations[selected_combination]
 
     logo_positions = ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"]
-    selected_logo_position = st.selectbox("Select Logo Position", logo_positions)
+    selected_logo_position = st.selectbox("Select logo position", logo_positions)
 
     image_sizes = {
         "468 x 60": (468, 60),
@@ -155,28 +160,20 @@ def main():
     if st.button("Merge and Download"):
         if uploaded_images:
             st.write("Processing images...")
-            texts = [call_to_action, description]
-            text_colors = [text_color_bg_combinations[combo][0] for combo in selected_combinations]
-            bg_colors = [text_color_bg_combinations[combo][1] for combo in selected_combinations]
-            positions = [selected_position, selected_position]
-            font_sizes = [font_size, font_size]
-            
             for image in uploaded_images:
-                images_with_text = []
                 img = Image.open(image)
-                st.write(f"Processing image {image.name} with Call to Action and Description")
-                for selected_size_label in selected_image_sizes:
-                    resized_img = img.copy()
-                    resized_img.thumbnail(image_sizes[selected_size_label])
-                    merged_img = merge_text_with_image(resized_img, texts, font_sizes, text_colors, bg_colors, positions, position_mapping)
-                    
-                    if uploaded_logo:
-                        logo_img = Image.open(uploaded_logo)
-                        st.write(f"Overlaying logo on image {image.name}")
-                        merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, logo_mapping)
-                    
-                    images_with_text.append(merged_img)
-                download_images(images_with_text, 0, selected_image_sizes, font_size, image_sizes)
+                texts = [call_to_action_text, description_text]
+                font_sizes = [call_to_action_font_size, description_font_size]
+                positions = [call_to_action_position, description_position]
+                text_colors = [text_color, text_color]
+                bg_colors = [bg_color, bg_color]
+                merged_img = merge_text_with_image(img, texts, font_sizes, text_colors, bg_colors, positions, position_mapping)
+                
+                if uploaded_logo:
+                    logo_img = Image.open(uploaded_logo)
+                    merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, logo_mapping)
+                
+                download_images([merged_img], 0, selected_image_sizes, image_sizes)
             st.write("Images processed and available for download!")
 
 if __name__ == "__main__":
