@@ -91,6 +91,12 @@ def main():
     uploaded_images = st.file_uploader("Upload multiple images", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
     uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
 
+    if uploaded_images:
+        st.write("Images uploaded successfully!")
+
+    if uploaded_logo:
+        st.write("Logo uploaded successfully!")
+
     num_texts = st.number_input("Enter the number of text fields", min_value=1, step=1)
     texts = [st.text_input(f"Enter text {i + 1}") for i in range(num_texts)]
     
@@ -145,6 +151,7 @@ def main():
 
     if st.button("Merge and Download"):
         if uploaded_images:
+            st.write("Processing images...")
             for text_idx, text in enumerate(texts):
                 for font_size in font_sizes:
                     for combo in selected_combinations:
@@ -153,6 +160,7 @@ def main():
                             images_with_text = []
                             for image in uploaded_images:
                                 img = Image.open(image)
+                                st.write(f"Processing image {image.name} with text '{text}' at position '{position}'")
                                 for selected_size_label in selected_image_sizes:
                                     resized_img = img.copy()
                                     resized_img.thumbnail(image_sizes[selected_size_label])
@@ -160,10 +168,12 @@ def main():
                                     
                                     if uploaded_logo:
                                         logo_img = Image.open(uploaded_logo)
+                                        st.write(f"Overlaying logo on image {image.name}")
                                         merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, logo_mapping)
                                     
                                     images_with_text.append(merged_img)
                             download_images(images_with_text, text_idx, selected_image_sizes, font_size, image_sizes)
+            st.write("Images processed and available for download!")
 
 if __name__ == "__main__":
     main()
