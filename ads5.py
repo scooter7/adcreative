@@ -27,7 +27,7 @@ def merge_text_with_image(image, texts, width_percentages, height_percentages, t
     img_width, img_height = img.size
 
     for text, width_percentage, height_percentage, text_color, bg_color, position in zip(texts, width_percentages, height_percentages, text_colors, bg_colors, positions):
-        # Adjust the font size based on the smaller of the width or height constraint
+        # Adjust the font size based on both the width and height constraints
         font_size = calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage)
         font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
         text_width, text_height = draw.textsize(text, font=font)
