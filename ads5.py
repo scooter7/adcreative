@@ -42,11 +42,16 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
 
     return img
 
-def overlay_logo(image, logo, logo_position, logo_mapping):
+def overlay_logo(image, logo, logo_position, logo_mapping, max_logo_size_ratio=0.2):
     img = image.convert("RGBA")  # Ensure the image is in RGBA mode
     logo = logo.convert("RGBA")  # Ensure the logo is in RGBA mode
-    logo_width, logo_height = logo.size
+
     img_width, img_height = img.size
+    logo_max_width = int(img_width * max_logo_size_ratio)
+    logo_max_height = int(img_height * max_logo_size_ratio)
+
+    logo.thumbnail((logo_max_width, logo_max_height), Image.ANTIALIAS)
+    logo_width, logo_height = logo.size
 
     x, y = logo_mapping[logo_position]
 
