@@ -42,6 +42,31 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
 
     return img
 
+def overlay_logo(image, logo, logo_position, logo_mapping):
+    img = image.copy()
+    logo = logo.copy()
+    logo_width, logo_height = logo.size
+    img_width, img_height = img.size
+
+    x, y = logo_mapping[logo_position]
+
+    if x == "center":
+        x = (img_width - logo_width) // 2
+    elif x == "right":
+        x = img_width - logo_width
+    else:  # "left"
+        x = 0
+
+    if y == "center":
+        y = (img_height - logo_height) // 2
+    elif y == "bottom":
+        y = img_height - logo_height
+    else:  # "top"
+        y = 0
+
+    img.paste(logo, (x, y), logo)
+    return img
+
 def download_images(images_with_text, text_idx, selected_sizes, font_size, image_sizes):
     for idx, image in enumerate(images_with_text):
         for selected_size_label in selected_sizes:
@@ -56,9 +81,11 @@ def download_images(images_with_text, text_idx, selected_sizes, font_size, image
             st.markdown(href, unsafe_allow_html=True)
 
 def main():
-    st.title("Image Text Overlay App")
+    st.title("Image Text and Logo Overlay App")
 
     uploaded_images = st.file_uploader("Upload multiple images", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+    uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
+
     num_texts = st.number_input("Enter the number of text fields", min_value=1, step=1)
     texts = [st.text_input(f"Enter text {i + 1}") for i in range(num_texts)]
     
@@ -73,6 +100,9 @@ def main():
 
     positions = ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"]
     selected_positions = [position for position in positions if st.checkbox(position.title())]
+
+    logo_positions = ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"]
+    selected_logo_position = st.selectbox("Select logo position", logo_positions)
 
     image_sizes = {
         "468 x 60": (468, 60),
@@ -96,6 +126,18 @@ def main():
         "center": ("center", "center"),
     }
 
+    logo_mapping = {
+        "top-left": ("left", "top"),
+        "top-center": ("center", "top"),
+        "top-right": ("right", "top"),
+        "middle-left": ("left", "center"),
+        "middle-center": ("center", "center"),
+        "middle-right": ("right", "center"),
+        "bottom-left": ("left", "bottom"),
+        "bottom-center": ("center", "bottom"),
+        "bottom-right": ("right", "bottom"),
+    }
+
     if st.button("Merge and Download"):
         if uploaded_images:
             for text_idx, text in enumerate(texts):
@@ -110,6 +152,11 @@ def main():
                                     resized_img = img.copy()
                                     resized_img.thumbnail(image_sizes[selected_size_label])
                                     merged_img = merge_text_with_image(resized_img, text, font_size, text_color, bg_color, position, position_mapping)
+                                    
+                                    if uploaded_logo:
+                                        logo_img = Image.open(uploaded_logo)
+                                        merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, logo_mapping)
+                                    
                                     images_with_text.append(merged_img)
                             download_images(images_with_text, text_idx, selected_image_sizes, font_size, image_sizes)
 
