@@ -43,8 +43,8 @@ def merge_text_with_image(image, text, font_size, text_color, bg_color, position
     return img
 
 def overlay_logo(image, logo, logo_position, logo_mapping):
-    img = image.copy()
-    logo = logo.copy()
+    img = image.convert("RGBA")  # Ensure the image is in RGBA mode
+    logo = logo.convert("RGBA")  # Ensure the logo is in RGBA mode
     logo_width, logo_height = logo.size
     img_width, img_height = img.size
 
@@ -64,8 +64,8 @@ def overlay_logo(image, logo, logo_position, logo_mapping):
     else:  # "top"
         y = 0
 
-    img.paste(logo, (x, y), logo)
-    return img
+    img.paste(logo, (x, y), logo)  # Use the logo itself as the mask
+    return img.convert("RGB")  # Convert back to RGB if you don't need alpha
 
 def download_images(images_with_text, text_idx, selected_sizes, font_size, image_sizes):
     for idx, image in enumerate(images_with_text):
