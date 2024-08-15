@@ -27,7 +27,7 @@ def merge_text_with_image(image, texts, width_percentages, height_percentages, t
     img_width, img_height = img.size
 
     for text, width_percentage, height_percentage, text_color, bg_color, position in zip(texts, width_percentages, height_percentages, text_colors, bg_colors, positions):
-        # Adjust the font size based on both the width and height constraints
+        # Calculate font size based on width and height percentages
         font_size = calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage)
         font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
         text_width, text_height = draw.textsize(text, font=font)
@@ -61,40 +61,47 @@ def merge_text_with_image(image, texts, width_percentages, height_percentages, t
 
     return img
 
-def overlay_logo(image, logo, logo_position, logo_mapping, logo_width_percentage, logo_height_percentage):
+def overlay_logo(image, logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage):
     img = image.convert("RGBA")  # Ensure the image is in RGBA mode
     logo = logo.convert("RGBA")  # Ensure the logo is in RGBA mode
 
-    img_width, img_height = img.size
-    logo_max_width = int(img_width * logo_width_percentage)
-    logo_max_height = int(img_height * logo_height_percentage)
+    logo_width = int(img_width * logo_width_percentage)
+    logo_height = int(img_height * logo_height_percentage)
 
-    logo.thumbnail((logo_max_width, logo_max_height), Image.ANTIALIAS)
-    logo_width, logo_height = logo.size
+    logo = logo.resize((logo_width, logo_height), Image.ANTIALIAS)
 
-    x, y = logo_mapping[logo_position]
-
-    if x == "center":
+    if logo_position == "top-left":
+        x = 10
+        y = 10
+    elif logo_position == "top-center":
         x = (img_width - logo_width) // 2
-    elif x == "right":
-        x = img_width - logo_width
-    else:  # "left"
-        x = 0
-
-    if y == "center":
+        y = 10
+    elif logo_position == "top-right":
+        x = img_width - logo_width - 10
+        y = 10
+    elif logo_position == "middle-left":
+        x = 10
         y = (img_height - logo_height) // 2
-    elif y == "bottom":
-        y = img_height - logo_height
-    else:  # "top"
-        y = 0
+    elif logo_position == "middle-center":
+        x = (img_width - logo_width) // 2
+        y = (img_height - logo_height) // 2
+    elif logo_position == "middle-right":
+        x = img_width - logo_width - 10
+        y = (img_height - logo_height) // 2
+    elif logo_position == "bottom-left":
+        x = 10
+        y = img_height - logo_height - 10
+    elif logo_position == "bottom-center":
+        x = (img_width - logo_width) // 2
+        y = img_height - logo_height - 10
+    elif logo_position == "bottom-right":
+        x = img_width - logo_width - 10
+        y = img_height - logo_height - 10
 
-    # Create a mask from the alpha channel of the logo
-    logo_mask = logo.split()[3]  # This extracts the alpha channel
+    # Paste the logo onto the image
+    img.paste(logo, (x, y), logo)
 
-    # Paste the logo onto the image using the alpha channel as the mask
-    img.paste(logo, (x, y), logo_mask)
-    
-    return img.convert("RGB")  # Convert back to RGB if you don't need alpha
+    return img.convert("RGB")
 
 def download_images(images_with_text, text_idx, selected_sizes, image_sizes):
     for idx, image in enumerate(images_with_text):
@@ -162,18 +169,6 @@ def main():
         "center": ("center", "center"),
     }
 
-    logo_mapping = {
-        "top-left": ("left", "top"),
-        "top-center": ("center", "top"),
-        "top-right": ("right", "top"),
-        "middle-left": ("left", "center"),
-        "middle-center": ("center", "center"),
-        "middle-right": ("right", "center"),
-        "bottom-left": ("left", "bottom"),
-        "bottom-center": ("center", "bottom"),
-        "bottom-right": ("right", "bottom"),
-    }
-
     if st.button("Merge and Download"):
         if uploaded_images:
             st.write("Processing images...")
@@ -189,7 +184,7 @@ def main():
                 
                 if uploaded_logo:
                     logo_img = Image.open(uploaded_logo)
-                    merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, logo_mapping, logo_width_percentage, logo_height_percentage)
+                    merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, img.width, img.height, logo_width_percentage, logo_height_percentage)
                 
                 download_images([merged_img], 0, selected_image_sizes, image_sizes)
             st.write("Images processed and available for download!")
