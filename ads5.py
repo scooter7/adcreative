@@ -107,18 +107,14 @@ def main():
     call_to_action_text = st.text_input("Call to Action Text")
     call_to_action_font_size = st.slider("Call to Action Font Size", 10, 100, 40, step=1)
     call_to_action_position = st.selectbox("Call to Action Position", ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"])
+    call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
+    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
 
     description_text = st.text_input("Description Text")
     description_font_size = st.slider("Description Font Size", 10, 100, 40, step=1)
     description_position = st.selectbox("Description Position", ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"])
-
-    text_color_bg_combinations = {
-        "White Text with Black Background": ((255, 255, 255), (0, 0, 0)),
-        "Black Text with White Background": ((0, 0, 0), (255, 255, 255))
-    }
-    
-    selected_combination = st.selectbox("Select Text and Background Color Combination", list(text_color_bg_combinations.keys()))
-    text_color, bg_color = text_color_bg_combinations[selected_combination]
+    description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
+    description_bg_color = st.color_picker("Description Background Color", "#000000")
 
     logo_positions = ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"]
     selected_logo_position = st.selectbox("Select logo position", logo_positions)
@@ -165,8 +161,8 @@ def main():
                 texts = [call_to_action_text, description_text]
                 font_sizes = [call_to_action_font_size, description_font_size]
                 positions = [call_to_action_position, description_position]
-                text_colors = [text_color, text_color]
-                bg_colors = [bg_color, bg_color]
+                text_colors = [call_to_action_text_color, description_text_color]
+                bg_colors = [call_to_action_bg_color, description_bg_color]
                 merged_img = merge_text_with_image(img, texts, font_sizes, text_colors, bg_colors, positions, position_mapping)
                 
                 if uploaded_logo:
