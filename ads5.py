@@ -61,13 +61,13 @@ def merge_text_with_image(image, texts, width_percentages, height_percentages, t
 
     return img
 
-def overlay_logo(image, logo, logo_position, logo_mapping, max_logo_size_ratio=0.2):
+def overlay_logo(image, logo, logo_position, logo_mapping, logo_width_percentage, logo_height_percentage):
     img = image.convert("RGBA")  # Ensure the image is in RGBA mode
     logo = logo.convert("RGBA")  # Ensure the logo is in RGBA mode
 
     img_width, img_height = img.size
-    logo_max_width = int(img_width * max_logo_size_ratio)
-    logo_max_height = int(img_height * max_logo_size_ratio)
+    logo_max_width = int(img_width * logo_width_percentage)
+    logo_max_height = int(img_height * logo_height_percentage)
 
     logo.thumbnail((logo_max_width, logo_max_height), Image.ANTIALIAS)
     logo_width, logo_height = logo.size
@@ -135,6 +135,8 @@ def main():
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
     description_bg_color = st.color_picker("Description Background Color", "#000000")
 
+    logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
+    logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
     logo_positions = ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"]
     selected_logo_position = st.selectbox("Select logo position", logo_positions)
 
@@ -187,7 +189,7 @@ def main():
                 
                 if uploaded_logo:
                     logo_img = Image.open(uploaded_logo)
-                    merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, logo_mapping)
+                    merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, logo_mapping, logo_width_percentage, logo_height_percentage)
                 
                 download_images([merged_img], 0, selected_image_sizes, image_sizes)
             st.write("Images processed and available for download!")
