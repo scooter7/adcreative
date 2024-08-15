@@ -14,32 +14,33 @@ def merge_text_with_image(image, texts, font_sizes, text_colors, bg_colors, posi
         font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
         text_width, text_height = draw.textsize(text, font=font)
 
-        if position == "bottom-center":
-            img_width, img_height = img.size
+        img_width, img_height = img.size
+
+        if position == "top-left":
+            x = 10
+            y = 10
+        elif position == "top-center":
             x = (img_width - text_width) // 2
-            y = img_height - text_height
-        else:
-            x, y = position_mapping[position]
-
-            try:
-                x = int(x)
-            except (ValueError, TypeError):
-                x = None
-
-            try:
-                y = int(y)
-            except (ValueError, TypeError):
-                y = None
-
-        if x is None:
-            img_width, _ = img.size
+            y = 10
+        elif position == "top-right":
+            x = img_width - text_width - 10
+            y = 10
+        elif position == "bottom-left":
+            x = 10
+            y = img_height - text_height - 10
+        elif position == "bottom-center":
             x = (img_width - text_width) // 2
-
-        if y is None:
-            _, img_height = img.size
+            y = img_height - text_height - 10
+        elif position == "bottom-right":
+            x = img_width - text_width - 10
+            y = img_height - text_height - 10
+        elif position == "center":
+            x = (img_width - text_width) // 2
             y = (img_height - text_height) // 2
 
+        # Draw background rectangle for the text
         draw.rectangle([x, y, x + text_width, y + text_height], fill=bg_color)
+        # Draw the text
         draw.text((x, y), text, font=font, fill=text_color)
 
     return img
