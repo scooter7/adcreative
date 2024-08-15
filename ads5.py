@@ -64,7 +64,12 @@ def overlay_logo(image, logo, logo_position, logo_mapping):
     else:  # "top"
         y = 0
 
-    img.paste(logo, (x, y), logo)  # Use the logo itself as the mask
+    # Create a mask from the alpha channel of the logo
+    logo_mask = logo.split()[3]  # This extracts the alpha channel
+
+    # Paste the logo onto the image using the alpha channel as the mask
+    img.paste(logo, (x, y), logo_mask)
+    
     return img.convert("RGB")  # Convert back to RGB if you don't need alpha
 
 def download_images(images_with_text, text_idx, selected_sizes, font_size, image_sizes):
