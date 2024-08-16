@@ -124,9 +124,12 @@ def main():
 
     if uploaded_images:
         st.write("Images uploaded successfully!")
+        for uploaded_image in uploaded_images:
+            st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
 
     if uploaded_logo:
         st.write("Logo uploaded successfully!")
+        st.image(uploaded_logo, caption="Uploaded Logo", use_column_width=True)
 
     num_pairs = st.number_input("Number of Call to Action + Description Pairs", min_value=1, step=1)
     call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i in range(num_pairs)]
