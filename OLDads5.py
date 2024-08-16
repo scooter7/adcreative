@@ -6,88 +6,114 @@ from io import BytesIO
 
 DEFAULT_FONT_PATH = "arial.ttf"
 
-def merge_text_with_image(image, text, font_size, text_color, bg_color, position, position_mapping):
+def calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage):
+    max_width = img_width * width_percentage
+    max_height = img_height * height_percentage
+    font_size = 1
+    font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
+
+    while True:
+        text_width, text_height = draw.textsize(text, font=font)
+        if text_width > max_width or text_height > max_height:
+            break
+        font_size += 1
+        font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
+
+    return font_size - 1  # Use the last valid size
+
+def merge_text_with_image(image, texts, width_percentages, height_percentages, text_colors, bg_colors, positions, position_mapping):
     img = image.copy()
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
-    text_width, text_height = draw.textsize(text, font=font)
+    img_width, img_height = img.size
 
-    if position == "bottom-center":
-        img_width, img_height = img.size
-        x = (img_width - text_width) // 2
-        y = img_height - text_height
-    else:
-        x, y = position_mapping[position]
+    for text, width_percentage, height_percentage, text_color, bg_color, position in zip(texts, width_percentages, height_percentages, text_colors, bg_colors, positions):
+        # Calculate font size based on the tighter constraint of width or height
+        font_size = calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage)
+        font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
+        text_width, text_height = draw.textsize(text, font=font)
 
-        try:
-            x = int(x)
-        except (ValueError, TypeError):
-            x = None
+        if position == "top-left":
+            x = 10
+            y = 10
+        elif position == "top-center":
+            x = (img_width - text_width) // 2
+            y = 10
+        elif position == "top-right":
+            x = img_width - text_width - 10
+            y = 10
+        elif position == "bottom-left":
+            x = 10
+            y = img_height - text_height - 10
+        elif position == "bottom-center":
+            x = (img_width - text_width) // 2
+            y = img_height - text_height - 10
+        elif position == "bottom-right":
+            x = img_width - text_width - 10
+            y = img_height - text_height - 10
+        elif position == "center":
+            x = (img_width - text_width) // 2
+            y = (img_height - text_height) // 2
 
-        try:
-            y = int(y)
-        except (ValueError, TypeError):
-            y = None
-
-    if x is None:
-        img_width, _ = img.size
-        x = (img_width - text_width) // 2
-
-    if y is None:
-        _, img_height = img.size
-        y = (img_height - text_height) // 2
-
-    draw.rectangle([x, y, x + text_width, y + text_height], fill=bg_color)
-    draw.text((x, y), text, font=font, fill=text_color)
+        # Draw background rectangle for the text
+        draw.rectangle([x, y, x + text_width, y + text_height], fill=bg_color)
+        # Draw the text
+        draw.text((x, y), text, font=font, fill=text_color)
 
     return img
 
-def overlay_logo(image, logo, logo_position, logo_mapping, max_logo_size_ratio=0.2):
+def overlay_logo(image, logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage):
     img = image.convert("RGBA")  # Ensure the image is in RGBA mode
     logo = logo.convert("RGBA")  # Ensure the logo is in RGBA mode
 
-    img_width, img_height = img.size
-    logo_max_width = int(img_width * max_logo_size_ratio)
-    logo_max_height = int(img_height * max_logo_size_ratio)
+    logo_width = int(img_width * logo_width_percentage)
+    logo_height = int(img_height * logo_height_percentage)
 
-    logo.thumbnail((logo_max_width, logo_max_height), Image.ANTIALIAS)
-    logo_width, logo_height = logo.size
+    logo = logo.resize((logo_width, logo_height), Image.ANTIALIAS)
 
-    x, y = logo_mapping[logo_position]
-
-    if x == "center":
+    if logo_position == "top-left":
+        x = 10
+        y = 10
+    elif logo_position == "top-center":
         x = (img_width - logo_width) // 2
-    elif x == "right":
-        x = img_width - logo_width
-    else:  # "left"
-        x = 0
-
-    if y == "center":
+        y = 10
+    elif logo_position == "top-right":
+        x = img_width - logo_width - 10
+        y = 10
+    elif logo_position == "middle-left":
+        x = 10
         y = (img_height - logo_height) // 2
-    elif y == "bottom":
-        y = img_height - logo_height
-    else:  # "top"
-        y = 0
+    elif logo_position == "middle-center":
+        x = (img_width - logo_width) // 2
+        y = (img_height - logo_height) // 2
+    elif logo_position == "middle-right":
+        x = img_width - logo_width - 10
+        y = (img_height - logo_height) // 2
+    elif logo_position == "bottom-left":
+        x = 10
+        y = img_height - logo_height - 10
+    elif logo_position == "bottom-center":
+        x = (img_width - logo_width) // 2
+        y = img_height - logo_height - 10
+    elif logo_position == "bottom-right":
+        x = img_width - logo_width - 10
+        y = img_height - logo_height - 10
 
-    # Create a mask from the alpha channel of the logo
-    logo_mask = logo.split()[3]  # This extracts the alpha channel
+    # Paste the logo onto the image
+    img.paste(logo, (x, y), logo)
 
-    # Paste the logo onto the image using the alpha channel as the mask
-    img.paste(logo, (x, y), logo_mask)
-    
-    return img.convert("RGB")  # Convert back to RGB if you don't need alpha
+    return img.convert("RGB")
 
-def download_images(images_with_text, text_idx, selected_sizes, font_size, image_sizes):
+def download_images(images_with_text, text_idx, selected_sizes, image_sizes):
     for idx, image in enumerate(images_with_text):
         for selected_size_label in selected_sizes:
             image_size = image_sizes[selected_size_label]
             image = image.resize(image_size, Image.ANTIALIAS)
-            st.image(image, caption=f"Text {text_idx + 1} - Image {idx + 1} - Font Size {font_size}", use_column_width=False)
+            st.image(image, caption=f"Image {idx + 1}", use_column_width=False)
 
             buffered = BytesIO()
             image.save(buffered, format="PNG")
             img_str = base64.b64encode(buffered.getvalue()).decode()
-            href = f'<a href="data:file/png;base64,{img_str}" download="text_image_{text_idx}_{selected_size_label}_font_size_{font_size}.png">Download Image {idx + 1}</a>'
+            href = f'<a href="data:file/png;base64,{img_str}" download="image_{text_idx}_{selected_size_label}.png">Download Image {idx + 1}</a>'
             st.markdown(href, unsafe_allow_html=True)
 
 def main():
@@ -102,21 +128,22 @@ def main():
     if uploaded_logo:
         st.write("Logo uploaded successfully!")
 
-    num_texts = st.number_input("Enter the number of text fields", min_value=1, step=1)
-    texts = [st.text_input(f"Enter text {i + 1}") for i in range(num_texts)]
-    
-    text_color_bg_combinations = {
-        "White Text with Black Background": ((255, 255, 255), (0, 0, 0)),
-        "Black Text with White Background": ((0, 0, 0), (255, 255, 255))
-    }
-    
-    selected_combinations = [combo for combo, _ in text_color_bg_combinations.items() if st.checkbox(combo)]
-    
-    font_sizes = [st.slider(f"Text Font Size {i + 1}", 10, 100, 40, step=1) for i in range(st.number_input("Enter the number of font sizes", min_value=1, step=1))]
+    call_to_action_text = st.text_input("Call to Action Text")
+    call_to_action_width_percentage = st.slider("Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
+    call_to_action_height_percentage = st.slider("Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
+    call_to_action_position = st.selectbox("Call to Action Position", ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"])
+    call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
+    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
 
-    positions = ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"]
-    selected_positions = [position for position in positions if st.checkbox(position.title())]
+    description_text = st.text_input("Description Text")
+    description_width_percentage = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
+    description_height_percentage = st.slider("Description Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
+    description_position = st.selectbox("Description Position", ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right", "center"])
+    description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
+    description_bg_color = st.color_picker("Description Background Color", "#000000")
 
+    logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
+    logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
     logo_positions = ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"]
     selected_logo_position = st.selectbox("Select logo position", logo_positions)
 
@@ -142,42 +169,24 @@ def main():
         "center": ("center", "center"),
     }
 
-    logo_mapping = {
-        "top-left": ("left", "top"),
-        "top-center": ("center", "top"),
-        "top-right": ("right", "top"),
-        "middle-left": ("left", "center"),
-        "middle-center": ("center", "center"),
-        "middle-right": ("right", "center"),
-        "bottom-left": ("left", "bottom"),
-        "bottom-center": ("center", "bottom"),
-        "bottom-right": ("right", "bottom"),
-    }
-
     if st.button("Merge and Download"):
         if uploaded_images:
             st.write("Processing images...")
-            for text_idx, text in enumerate(texts):
-                for font_size in font_sizes:
-                    for combo in selected_combinations:
-                        text_color, bg_color = text_color_bg_combinations[combo]
-                        for position in selected_positions:
-                            images_with_text = []
-                            for image in uploaded_images:
-                                img = Image.open(image)
-                                st.write(f"Processing image {image.name} with text '{text}' at position '{position}'")
-                                for selected_size_label in selected_image_sizes:
-                                    resized_img = img.copy()
-                                    resized_img.thumbnail(image_sizes[selected_size_label])
-                                    merged_img = merge_text_with_image(resized_img, text, font_size, text_color, bg_color, position, position_mapping)
-                                    
-                                    if uploaded_logo:
-                                        logo_img = Image.open(uploaded_logo)
-                                        st.write(f"Overlaying logo on image {image.name}")
-                                        merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, logo_mapping)
-                                    
-                                    images_with_text.append(merged_img)
-                            download_images(images_with_text, text_idx, selected_image_sizes, font_size, image_sizes)
+            for image in uploaded_images:
+                img = Image.open(image)
+                texts = [call_to_action_text, description_text]
+                width_percentages = [call_to_action_width_percentage, description_width_percentage]
+                height_percentages = [call_to_action_height_percentage, description_height_percentage]
+                positions = [call_to_action_position, description_position]
+                text_colors = [call_to_action_text_color, description_text_color]
+                bg_colors = [call_to_action_bg_color, description_bg_color]
+                merged_img = merge_text_with_image(img, texts, width_percentages, height_percentages, text_colors, bg_colors, positions, position_mapping)
+                
+                if uploaded_logo:
+                    logo_img = Image.open(uploaded_logo)
+                    merged_img = overlay_logo(merged_img, logo_img, selected_logo_position, img.width, img.height, logo_width_percentage, logo_height_percentage)
+                
+                download_images([merged_img], 0, selected_image_sizes, image_sizes)
             st.write("Images processed and available for download!")
 
 if __name__ == "__main__":
