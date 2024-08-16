@@ -25,7 +25,7 @@ def calculate_font_size(draw, text, img_width, img_height, width_percentage, hei
     # Return the last valid font size
     return font_size - 1
 
-def merge_text_with_image(image, call_to_action_text, description_text, width_percentages, height_percentages, text_colors, bg_colors, cta_position, desc_position, logo_position, logo_width_percentage, logo_height_percentage):
+def merge_text_with_image(image, call_to_action_text, description_text, width_percentages, height_percentages, text_colors, bg_colors, cta_position, desc_position, logo_position, logo_width_percentage, logo_height_percentage, uploaded_logo):
     img = image.copy()
     draw = ImageDraw.Draw(img)
     img_width, img_height = img.size
@@ -53,7 +53,7 @@ def merge_text_with_image(image, call_to_action_text, description_text, width_pe
 
     # Apply logo if uploaded and positions don't overlap
     if logo_position != cta_position and logo_position != desc_position:
-        img = overlay_logo(img, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage)
+        img = overlay_logo(img, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage)
 
     return img
 
@@ -87,7 +87,7 @@ def get_position_coordinates(position, img_width, img_height, text_width, text_h
         y = img_height - text_height - 10 + y_offset
     return x, y
 
-def overlay_logo(image, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage):
+def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage):
     img = image.convert("RGBA")  # Ensure the image is in RGBA mode
     logo = uploaded_logo.convert("RGBA")  # Ensure the logo is in RGBA mode
 
@@ -184,7 +184,8 @@ def main():
                                         desc_position,
                                         logo_position,
                                         logo_width_percentage,
-                                        logo_height_percentage
+                                        logo_height_percentage,
+                                        uploaded_logo
                                     )
                                     images_with_text.append(merged_img)
             download_images(images_with_text, selected_image_sizes, image_sizes)
