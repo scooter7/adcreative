@@ -9,9 +9,12 @@ DEFAULT_FONT_PATH = "arial.ttf"
 def calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage):
     max_width = img_width * width_percentage
     max_height = img_height * height_percentage
+
+    # Start with an initial guess for font size
     font_size = 1
     font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
 
+    # Increase font size until the text exceeds width or height constraints
     while True:
         text_width, text_height = draw.textsize(text, font=font)
         if text_width > max_width or text_height > max_height:
@@ -19,7 +22,8 @@ def calculate_font_size(draw, text, img_width, img_height, width_percentage, hei
         font_size += 1
         font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
 
-    return font_size - 1  # Use the last valid size
+    # Return the last valid font size
+    return font_size - 1
 
 def merge_text_with_image(image, texts, width_percentages, height_percentages, text_colors, bg_colors, positions, position_mapping):
     img = image.copy()
@@ -27,7 +31,7 @@ def merge_text_with_image(image, texts, width_percentages, height_percentages, t
     img_width, img_height = img.size
 
     for text, width_percentage, height_percentage, text_color, bg_color, position in zip(texts, width_percentages, height_percentages, text_colors, bg_colors, positions):
-        # Calculate font size based on the tighter constraint of width or height
+        # Calculate font size based on height and adjust for width
         font_size = calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage)
         font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
         text_width, text_height = draw.textsize(text, font=font)
