@@ -89,7 +89,7 @@ def get_position_coordinates(position, img_width, img_height, text_width, text_h
 
 def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage):
     img = image.convert("RGBA")  # Ensure the image is in RGBA mode
-    logo = uploaded_logo.convert("RGBA")  # Ensure the logo is in RGBA mode
+    logo = Image.open(uploaded_logo).convert("RGBA")  # Open the logo image and ensure it's in RGBA mode
 
     logo_width = int(img_width * logo_width_percentage)
     logo_height = int(img_height * logo_height_percentage)
