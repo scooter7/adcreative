@@ -25,12 +25,12 @@ def calculate_font_size(draw, text, img_width, img_height, width_percentage, hei
     # Return the last valid font size
     return font_size - 1
 
-def merge_text_with_image(image, call_to_action_text, description_text, width_percentages, height_percentages, text_colors, bg_colors, positions):
+def merge_text_with_image(image, call_to_action_text, description_text, width_percentages, height_percentages, text_colors, bg_colors, cta_positions, desc_positions):
     img = image.copy()
     draw = ImageDraw.Draw(img)
     img_width, img_height = img.size
 
-    for (cta_text, desc_text, position) in zip(call_to_action_text, description_text, positions):
+    for (cta_text, desc_text, cta_position, desc_position) in zip(call_to_action_text, description_text, cta_positions, desc_positions):
         # Calculate font size based on height and adjust for width
         font_size_cta = calculate_font_size(draw, cta_text, img_width, img_height, width_percentages[0], height_percentages[0])
         font_size_desc = calculate_font_size(draw, desc_text, img_width, img_height, width_percentages[1], height_percentages[1])
@@ -39,11 +39,11 @@ def merge_text_with_image(image, call_to_action_text, description_text, width_pe
 
         # Position for call to action text
         text_width_cta, text_height_cta = draw.textsize(cta_text, font=font_cta)
-        x_cta, y_cta = get_position_coordinates(position, img_width, img_height, text_width_cta, text_height_cta)
+        x_cta, y_cta = get_position_coordinates(cta_position, img_width, img_height, text_width_cta, text_height_cta)
 
         # Position for description text
         text_width_desc, text_height_desc = draw.textsize(desc_text, font=font_desc)
-        x_desc, y_desc = get_position_coordinates(position, img_width, img_height, text_width_desc, text_height_desc, y_offset=text_height_cta + 10)
+        x_desc, y_desc = get_position_coordinates(desc_position, img_width, img_height, text_width_desc, text_height_desc)
 
         # Draw the background rectangles and texts
         draw.rectangle([x_cta, y_cta, x_cta + text_width_cta, y_cta + text_height_cta], fill=bg_colors[0])
@@ -134,7 +134,8 @@ def main():
     width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
     height_percentage_desc = st.slider("Description Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
 
-    selected_positions = st.multiselect("Select Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
+    selected_cta_positions = st.multiselect("Select Call to Action Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
+    selected_desc_positions = st.multiselect("Select Description Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
     call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
@@ -158,38 +159,40 @@ def main():
     selected_image_sizes = [size for size, _ in image_sizes.items() if st.checkbox(size)]
 
     if st.button("Merge and Download"):
-        if uploaded_images and selected_positions and selected_logo_positions:
+        if uploaded_images and selected_cta_positions and selected_desc_positions and selected_logo_positions:
             st.write("Processing images...")
             images_with_text = []
             for image in uploaded_images:
                 img = Image.open(image)
-                for position in selected_positions:
-                    for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
-                        merged_img = merge_text_with_image(
-                            img,
-                            [call_to_action_text],
-                            [description_text],
-                            [width_percentage_cta, width_percentage_desc],
-                            [height_percentage_cta, height_percentage_desc],
-                            [call_to_action_text_color, description_text_color],
-                            [call_to_action_bg_color, description_bg_color],
-                            [position]
-                        )
-                        for logo_position in selected_logo_positions:
-                            if uploaded_logo:
-                                logo_img = Image.open(uploaded_logo)
-                                final_img = overlay_logo(
-                                    merged_img,
-                                    logo_img,
-                                    logo_position,
-                                    img.width,
-                                    img.height,
-                                    logo_width_percentage,
-                                    logo_height_percentage
-                                )
-                            else:
-                                final_img = merged_img
-                            images_with_text.append(final_img)
+                for cta_position in selected_cta_positions:
+                    for desc_position in selected_desc_positions:
+                        for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
+                            merged_img = merge_text_with_image(
+                                img,
+                                [call_to_action_text],
+                                [description_text],
+                                [width_percentage_cta, width_percentage_desc],
+                                [height_percentage_cta, height_percentage_desc],
+                                [call_to_action_text_color, description_text_color],
+                                [call_to_action_bg_color, description_bg_color],
+                                [cta_position],
+                                [desc_position]
+                            )
+                            for logo_position in selected_logo_positions:
+                                if uploaded_logo:
+                                    logo_img = Image.open(uploaded_logo)
+                                    final_img = overlay_logo(
+                                        merged_img,
+                                        logo_img,
+                                        logo_position,
+                                        img.width,
+                                        img.height,
+                                        logo_width_percentage,
+                                        logo_height_percentage
+                                    )
+                                else:
+                                    final_img = merged_img
+                                images_with_text.append(final_img)
             download_images(images_with_text, selected_image_sizes, image_sizes)
             st.write("Images processed and available for download!")
 
