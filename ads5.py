@@ -4,9 +4,7 @@ import streamlit as st
 import base64
 from io import BytesIO
 
-DEFAULT_FONT_PATH = "arial.ttf"
-
-def calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage):
+DEFAULT_FONT_PATH = "arial.ttf"defcalculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage):
     max_width = img_width * width_percentage
     max_height = img_height * height_percentage
 
@@ -14,18 +12,14 @@ def calculate_font_size(draw, text, img_width, img_height, width_percentage, hei
     font_size = 1
     font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
 
-    # Increase font size until the text exceeds width or height constraints
-    while True:
+    # Increase font size until the text exceeds width or height constraintswhileTrue:
         text_width, text_height = draw.textsize(text, font=font)
         if text_width > max_width or text_height > max_height:
             break
         font_size += 1
         font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
 
-    # Return the last valid font size
-    return font_size - 1
-
-def merge_text_with_image(image, call_to_action_text, description_text, width_percentages, height_percentages, text_colors, bg_colors, cta_position, desc_position, logo_position, logo_width_percentage, logo_height_percentage, uploaded_logo):
+    # Return the last valid font sizereturn font_size - 1defmerge_text_with_image(image, call_to_action_text, description_text, width_percentages, height_percentages, text_colors, bg_colors, cta_position, desc_position, logo_position, logo_width_percentage, logo_height_percentage, uploaded_logo):
     img = image.copy()
     draw = ImageDraw.Draw(img)
     img_width, img_height = img.size
@@ -51,8 +45,7 @@ def merge_text_with_image(image, call_to_action_text, description_text, width_pe
     draw.rectangle([x_desc, y_desc, x_desc + text_width_desc, y_desc + text_height_desc], fill=bg_colors[1])
     draw.text((x_desc, y_desc), description_text, font=font_desc, fill=text_colors[1])
 
-    # Apply logo if uploaded and positions don't overlap
-    if logo_position != cta_position and logo_position != desc_position:
+    # Apply logo if uploaded and positions don't overlapif logo_position != cta_position and logo_position != desc_position:
         img = overlay_logo(img, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage)
 
     return img
@@ -104,7 +97,7 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
     return img.convert("RGB")
 
 def download_images(images_with_text, selected_sizes, image_sizes):
-    for idx, image in enumerate(images_with_text):
+    for idx, image inenumerate(images_with_text):
         for selected_size_label in selected_sizes:
             image_size = image_sizes[selected_size_label]
             image_resized = image.resize(image_size, Image.ANTIALIAS)
@@ -132,9 +125,9 @@ def main():
         st.image(uploaded_logo, caption="Uploaded Logo", use_column_width=True)
 
     num_pairs = st.number_input("Number of Call to Action + Description Pairs", min_value=1, step=1)
-    call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i in range(num_pairs)]
-    description_texts = [st.text_input(f"Description Text {i + 1}") for i in range(num_pairs)]
-    
+    call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i inrange(num_pairs)]
+    description_texts = [st.text_input(f"Description Text {i + 1}") for i inrange(num_pairs)]
+
     width_percentage_cta = st.slider("Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
     height_percentage_cta = st.slider("Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
     width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
@@ -152,105 +145,52 @@ def main():
     logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
     selected_logo_positions = st.multiselect("Select Logo Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
-     image_sizes = {
-        "IP Targeting, Mobile Footprinting, + Audience Select": {
-            "Wide Skyscraper (160×600)": (160, 600),
-            "Medium Rectangle (300×250)": (300, 250),
-            "Mobile Leaderboard (300×50)": (300, 50),
-            "Mobile Leaderboard (320×50)": (320, 50),
-            "Leaderboard (728×90)": (728, 90)
+    image_sizes = {
+        "IP Targeting": {
+            "300x250": (300, 250),
+            "728x90": (728, 90),
         },
-        "Retargeting or Outreach": {
-            "Wide Skyscraper (160×600)": (160, 600),
-            "Super Wide Skyscraper (300×600)": (300, 600),
-            "Medium Rectangle (300×250)": (300, 250),
-            "Mobile Leaderboard (320×50)": (320, 50),
-            "Tall Mobile Leaderboard (320×100)": (320, 100),
-            "Large Rectangle (336×280)": (336, 280),
-            "Leaderboard (728×90)": (728, 90)
+        "Mobile Footprinting": {
+            "300x250": (300, 250),
+            "728x90": (728, 90),
         },
-        "Google My Business (GMB)": {
-            "Image (400×300)": (400, 300)
-        },
-        "LinkedIn Carousel Ads": {
-            "Carousel Ads (1080×1080)": (1080, 1080)
-        },
-        "LinkedIn Conversation Ads / Sponsored Message Companion Banner": {
-            "Conversation Ad / Sponsored Message Companion Banner (300×250)": (300, 250)
-        },
-        "LinkedIn Dynamic Ads": {
-            "Dynamic Ads (100×100)": (100, 100)
-        },
-        "LinkedIn Sponsored Ads": {
-            "Sponsored Ads (1200×627)": (1200, 627),
-            "Sponsored Ads (1200×1200)": (1200, 1200),
-            "Sponsored Ads (1080×1080)": (1080, 1080)
-        },
-        "Meta": {
-            "Sponsored Ads (1200×628)": (1200, 628),
-            "Sponsored Ads (1080×1080)": (1080, 1080),
-            "Carousel Ads (1080×1080)": (1080, 1080),
-            "Meta Stories + Reels (1080×1920)": (1080, 1920)
-        },
-        "Mobile Location Targeting": {
-            "Medium Rectangle (300×250)": (300, 250),
-            "Mobile Leaderboard (320×50)": (320, 50),
-            "Mobile Interstitial (320×480)": (320, 480),
-            "Leaderboard (728×90)": (728, 90)
-        },
-        "OTT/Connected TV": {
-            "Connect TV/ OTT (300×250)": (300, 250),
-            "Connect TV/ OTT (300×600)": (300, 600),
-            "Connect TV/ OTT (728×90)": (728, 90)
-        },
-        "Outbrain": {
-            "Outbrain (1200×800)": (1200, 800)
-        },
-        "Pandora": {
-            "Pandora (300×250)": (300, 250),
-            "Pandora (500×500)": (500, 500)
-        },
-        "Pre-roll": {
-            "Companion (300×250)": (300, 250)
+        "Audience Select": {
+            "300x250": (300, 250),
+            "728x90": (728, 90),
         },
         "Spotify": {
-            "Spotify (640×640 Companion Image)": (640, 640)
+            "640x640": (640, 640),
+            "300x250": (300, 250),
         },
         "YouTube": {
-            "Companion (300×60)": (300, 60)
+            "1280x720": (1280, 720),
+            "300x250": (300, 250),
         }
     }
-    selected_image_sizes = [size for size, _ in image_sizes.items() if st.checkbox(size)]
 
-    if st.button("Merge and Download"):
-        if uploaded_images and selected_cta_positions and selected_desc_positions and selected_logo_positions:
-            st.write("Processing images...")
-            images_with_text = []
-            for image in uploaded_images:
-                img = Image.open(image)
-                for cta_position in selected_cta_positions:
-                    for desc_position in selected_desc_positions:
-                        for logo_position in selected_logo_positions:
-                            if cta_position != desc_position and cta_position != logo_position and desc_position != logo_position:
-                                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
-                                    merged_img = merge_text_with_image(
-                                        img,
-                                        call_to_action_text,
-                                        description_text,
-                                        [width_percentage_cta, width_percentage_desc],
-                                        [height_percentage_cta, height_percentage_desc],
-                                        [call_to_action_text_color, description_text_color],
-                                        [call_to_action_bg_color, description_bg_color],
-                                        cta_position,
-                                        desc_position,
-                                        logo_position,
-                                        logo_width_percentage,
-                                        logo_height_percentage,
-                                        uploaded_logo
-                                    )
-                                    images_with_text.append(merged_img)
-            download_images(images_with_text, selected_image_sizes, image_sizes)
-            st.write("Images processed and available for download!")
+    selected_sizes = st.multiselect("Select Ad Sizes", [f"{w}x{h}"for size_dict in image_sizes.values() for w, h in size_dict.values()])
+
+    if st.button("Generate Images"):
+        images_with_text = []
+        for uploaded_image in uploaded_images:
+            image = Image.open(uploaded_image)
+            for call_to_action_text, description_text inzip(call_to_action_texts, description_texts):
+                image_with_text = merge_text_with_image(
+                    image, call_to_action_text, description_text,
+                    (width_percentage_cta, width_percentage_desc),
+                    (height_percentage_cta, height_percentage_desc),
+                    (call_to_action_text_color, description_text_color),
+                    (call_to_action_bg_color, description_bg_color),
+                    selected_cta_positions[0] if selected_cta_positions else"top-left",
+                    selected_desc_positions[0] if selected_desc_positions else"top-left",
+                    selected_logo_positions[0] if selected_logo_positions else"top-left",
+                    logo_width_percentage,
+                    logo_height_percentage,
+                    uploaded_logo
+                )
+                images_with_text.append(image_with_text)
+
+        download_images(images_with_text, selected_sizes, image_sizes)
 
 if __name__ == "__main__":
     main()
