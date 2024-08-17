@@ -95,37 +95,32 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
     return img.convert("RGB")
 
 def download_images(images_with_text, selected_image_sizes):
-    for idx, image in enumerate(images_with_text):
-        for channel, label, dimensions in selected_image_sizes:
-            image_resized = image.resize(dimensions, Image.ANTIALIAS)
-            st.image(image_resized, caption=f"Image {idx + 1} - Channel: {channel}, Size: {label}", use_column_width=False)
+    for idx, (image, channel, label, dimensions) in enumerate(images_with_text):
+        st.image(image, caption=f"Image {idx + 1} - Channel: {channel}, Size: {label}", use_column_width=False)
 
-            buffered = BytesIO()
-            image_resized.save(buffered, format="PNG")
-            img_str = base64.b64encode(buffered.getvalue()).decode()
-            href = f'<a href="data:file/png;base64,{img_str}" download="image_{idx + 1}_{channel}_{label}.png">Download Image</a>'
-            st.markdown(href, unsafe_allow_html=True)
+        buffered = BytesIO()
+        image.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+        href = f'<a href="data:file/png;base64,{img_str}" download="image_{idx + 1}_{channel}_{label}.png">Download Image</a>'
+        st.markdown(href, unsafe_allow_html=True)
 
-def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height):
-    # HTML and JS for draggable elements
+        # Adding draggable functionality after resizing and processing
+        img_base64 = img_str
+        add_draggable_functionality(img_base64, channel, label, img.size[0], img.size[1])
+
+def add_draggable_functionality(img_base64, channel, label, img_width, img_height):
     st.components.v1.html(f"""
         <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
             <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; font-size: 24px; color: white;">
-                {call_to_action_text}
+                {channel}
             </div>
             <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; font-size: 18px; color: yellow;">
-                {description_text}
+                {label}
             </div>
-            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move;">
-                <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
-            </div>
-            <input type="hidden" id="ctaPos" name="ctaPos">
-            <input type="hidden" id="descPos" name="descPos">
-            <input type="hidden" id="logoPos" name="logoPos">
         </div>
 
         <script>
-            function dragElement(elmnt, posInputId) {{
+            function dragElement(elmnt) {{
                 var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
                 elmnt.onmousedown = function(e) {{
                     e = e || window.event;
@@ -147,13 +142,11 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 function closeDragElement() {{
                     document.onmouseup = null;
                     document.onmousemove = null;
-                    document.getElementById(posInputId).value = elmnt.style.top + "," + elmnt.style.left;
                 }}
             }}
 
-            dragElement(document.getElementById("ctaText"), "ctaPos");
-            dragElement(document.getElementById("descText"), "descPos");
-            dragElement(document.getElementById("logoImage"), "logoPos");
+            dragElement(document.getElementById("ctaText"));
+            dragElement(document.getElementById("descText"));
         </script>
     """, height=img_height + 50)
 
@@ -236,35 +229,30 @@ def main():
             st.write("Processing images...")
             images_with_text = []
             for image in uploaded_images:
-                img = Image.open(image)
-                for cta_position in selected_cta_positions:
-                    for desc_position in selected_desc_positions:
-                        for logo_position in selected_logo_positions:
-                            if cta_position != desc_position and cta_position != logo_position and desc_position != logo_position:
-                                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
-                                    merged_img = merge_text_with_image(
-                                        img,
-                                        call_to_action_text,
-                                        description_text,
-                                        [width_percentage_cta, width_percentage_desc],
-                                        [height_percentage_cta, height_percentage_desc],
-                                        [call_to_action_text_color, description_text_color],
-                                        [call_to_action_bg_color, description_bg_color],
-                                        cta_position,
-                                        desc_position,
-                                        logo_position,
-                                        logo_width_percentage,
-                                        logo_height_percentage,
-                                        uploaded_logo
-                                    )
-
-                                    # Convert merged image to base64
-                                    buffered = BytesIO()
-                                    merged_img.save(buffered, format="PNG")
-                                    img_base64 = base64.b64encode(buffered.getvalue()).decode()
-
-                                    add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img.size[0], img.size[1])
-                                    images_with_text.append(merged_img)
+                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
+                    for cta_position in selected_cta_positions:
+                        for desc_position in selected_desc_positions:
+                            for logo_position in selected_logo_positions:
+                                if cta_position != desc_position and cta_position != logo_position and desc_position != logo_position:
+                                    for channel, label, dimensions in selected_image_sizes:
+                                        img = Image.open(image)
+                                        img_resized = img.resize(dimensions, Image.ANTIALIAS)
+                                        merged_img = merge_text_with_image(
+                                            img_resized,
+                                            call_to_action_text,
+                                            description_text,
+                                            [width_percentage_cta, width_percentage_desc],
+                                            [height_percentage_cta, height_percentage_desc],
+                                            [call_to_action_text_color, description_text_color],
+                                            [call_to_action_bg_color, description_bg_color],
+                                            cta_position,
+                                            desc_position,
+                                            logo_position,
+                                            logo_width_percentage,
+                                            logo_height_percentage,
+                                            uploaded_logo
+                                        )
+                                        images_with_text.append((merged_img, channel, label, dimensions))
 
             download_images(images_with_text, selected_image_sizes)
             st.write("Images processed and available for download!")
