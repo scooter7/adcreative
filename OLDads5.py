@@ -103,17 +103,16 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
 
     return img.convert("RGB")
 
-def download_images(images_with_text, selected_sizes, image_sizes):
+def download_images(images_with_text, selected_image_sizes):
     for idx, image in enumerate(images_with_text):
-        for selected_size_label in selected_sizes:
-            image_size = image_sizes[selected_size_label]
-            image_resized = image.resize(image_size, Image.ANTIALIAS)
-            st.image(image_resized, caption=f"Image {idx + 1} - Size: {selected_size_label}", use_column_width=False)
+        for channel, label, dimensions in selected_image_sizes:
+            image_resized = image.resize(dimensions, Image.ANTIALIAS)
+            st.image(image_resized, caption=f"Image {idx + 1} - Channel: {channel}, Size: {label}", use_column_width=False)
 
             buffered = BytesIO()
             image_resized.save(buffered, format="PNG")
             img_str = base64.b64encode(buffered.getvalue()).decode()
-            href = f'<a href="data:file/png;base64,{img_str}" download="image_{idx + 1}_{selected_size_label}.png">Download Image</a>'
+            href = f'<a href="data:file/png;base64,{img_str}" download="image_{idx + 1}_{channel}_{label}.png">Download Image</a>'
             st.markdown(href, unsafe_allow_html=True)
 
 def main():
@@ -153,16 +152,35 @@ def main():
     selected_logo_positions = st.multiselect("Select Logo Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
     image_sizes = {
-        "468 x 60": (468, 60),
-        "728 x 90": (728, 90),
-        "970 x 90": (970, 90),
-        "320 x 50": (320, 50),
-        "250 x 250": (250, 250),
-        "200 x 200": (200, 200),
-        "300 x 250": (300, 250),
-        "336 x 280": (336, 280),
+        "IP Targeting": {
+            "300x250": (300, 250),
+            "728x90": (728, 90),
+        },
+        "Mobile Footprinting": {
+            "300x250": (300, 250),
+            "728x90": (728, 90),
+        },
+        "Audience Select": {
+            "300x250": (300, 250),
+            "728x90": (728, 90),
+        },
+        "Spotify": {
+            "640x640": (640, 640),
+            "300x250": (300, 250),
+        },
+        "YouTube": {
+            "1280x720": (1280, 720),
+            "300x250": (300, 250),
+        },
     }
-    selected_image_sizes = [size for size, _ in image_sizes.items() if st.checkbox(size)]
+
+    selected_image_sizes = []
+    for channel, sizes in image_sizes.items():
+        with st.expander(f"{channel}"):
+            st.write(f"Select ad sizes for {channel}:")
+            for label, dimensions in sizes.items():
+                if st.checkbox(label, key=f"{channel}_{label}"):
+                    selected_image_sizes.append((channel, label, dimensions))
 
     if st.button("Merge and Download"):
         if uploaded_images and selected_cta_positions and selected_desc_positions and selected_logo_positions:
@@ -191,7 +209,7 @@ def main():
                                         uploaded_logo
                                     )
                                     images_with_text.append(merged_img)
-            download_images(images_with_text, selected_image_sizes, image_sizes)
+            download_images(images_with_text, selected_image_sizes)
             st.write("Images processed and available for download!")
 
 if __name__ == "__main__":
