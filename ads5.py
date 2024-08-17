@@ -109,51 +109,56 @@ def download_images(images_with_text, selected_image_sizes):
 def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height):
     # HTML and JS for draggable elements
     st.components.v1.html(f"""
+        <style>
+            .draggable {{
+                position: absolute;
+                cursor: move;
+            }}
+            #logoImage img {{
+                width: 100px; height: auto;
+            }}
+        </style>
         <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
-            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; font-size: 24px; color: white;">
+            <div id="ctaText" class="draggable" style="top: 50px; left: 50px; font-size: 24px; color: white;">
                 {call_to_action_text}
             </div>
-            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; font-size: 18px; color: yellow;">
+            <div id="descText" class="draggable" style="top: 150px; left: 50px; font-size: 18px; color: yellow;">
                 {description_text}
             </div>
-            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move;">
-                <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
+            <div id="logoImage" class="draggable" style="top: 250px; left: 50px;">
+                <img src="data:image/png;base64,{logo_base64}">
             </div>
-            <input type="hidden" id="ctaPos" name="ctaPos">
-            <input type="hidden" id="descPos" name="descPos">
-            <input type="hidden" id="logoPos" name="logoPos">
         </div>
 
         <script>
-            function dragElement(elmnt, posInputId) {{
-                var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-                elmnt.onmousedown = function(e) {{
-                    e = e or window.event;
-                    e.preventDefault();
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    document.onmouseup = closeDragElement;
-                    document.onmousemove = function(e) {{
-                        e.preventDefault();
-                        pos1 = pos3 - e.clientX;
-                        pos2 = pos4 - e.clientY;
-                        pos3 = e.clientX;
-                        pos4 = e.clientY;
-                        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-                        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            document.querySelectorAll('.draggable').forEach(elmnt => {{
+                elmnt.onmousedown = function(event) {{
+                    event.preventDefault();
+                    let shiftX = event.clientX - elmnt.getBoundingClientRect().left;
+                    let shiftY = event.clientY - elmnt.getBoundingClientRect().top;
+                    
+                    function moveAt(pageX, pageY) {{
+                        elmnt.style.left = pageX - shiftX + 'px';
+                        elmnt.style.top = pageY - shiftY + 'px';
+                    }}
+
+                    function onMouseMove(event) {{
+                        moveAt(event.pageX, event.pageY);
+                    }}
+
+                    document.addEventListener('mousemove', onMouseMove);
+
+                    elmnt.onmouseup = function() {{
+                        document.removeEventListener('mousemove', onMouseMove);
+                        elmnt.onmouseup = null;
                     }};
                 }};
-
-                function closeDragElement() {{
-                    document.onmouseup = null;
-                    document.onmousemove = null;
-                    document.getElementById(posInputId).value = elmnt.style.top + "," + elmnt.style.left;
-                }}
-            }}
-
-            dragElement(document.getElementById("ctaText"), "ctaPos");
-            dragElement(document.getElementById("descText"), "descPos");
-            dragElement(document.getElementById("logoImage"), "logoPos");
+                
+                // Disable drag and drop on mobile devices
+                elmnt.ontouchstart = function() {{
+                    return false;
+                }};
+            }});
         </script>
     """, height=img_height + 50)
 
