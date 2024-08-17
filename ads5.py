@@ -35,55 +35,55 @@ def main():
 
         # Display the image and draggable elements
         st.components.v1.html(f"""
-    <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: cover;">
-        <div id="ctaText" style="position: absolute; top: {initial_cta_position['top']}px; left: {initial_cta_position['left']}px; cursor: move; font-size: 24px; color: white;">
-            Call to Action
-        </div>
-        <div id="descText" style="position: absolute; top: {initial_desc_position['top']}px; left: {initial_desc_position['left']}px; cursor: move; font-size: 18px; color: yellow;">
-            Description Text
-        </div>
-        <div id="logoImage" style="position: absolute; top: {initial_logo_position['top']}px; left: {initial_logo_position['left']}px; cursor: move;">
-            <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
-        </div>
-        <!-- Hidden inputs to store the positions -->
-        <input type="hidden" id="ctaPos" name="ctaPos">
-        <input type="hidden" id="descPos" name="descPos">
-        <input type="hidden" id="logoPos" name="logoPos">
-    </div>
+            <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: cover;">
+                <div id="ctaText" style="position: absolute; top: {initial_cta_position['top']}px; left: {initial_cta_position['left']}px; cursor: move; font-size: 24px; color: white;">
+                    Call to Action
+                </div>
+                <div id="descText" style="position: absolute; top: {initial_desc_position['top']}px; left: {initial_desc_position['left']}px; cursor: move; font-size: 18px; color: yellow;">
+                    Description Text
+                </div>
+                <div id="logoImage" style="position: absolute; top: {initial_logo_position['top']}px; left: {initial_logo_position['left']}px; cursor: move;">
+                    <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
+                </div>
+                <!-- Hidden inputs to store the positions -->
+                <input type="hidden" id="ctaPos" name="ctaPos">
+                <input type="hidden" id="descPos" name="descPos">
+                <input type="hidden" id="logoPos" name="logoPos">
+            </div>
 
-    <script>
-        function dragElement(elmnt, posInputId) {
-            var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            elmnt.onmousedown = function(e) {
-                e = e || window.event;
-                e.preventDefault();
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = function(e) {
-                    e.preventDefault();
-                    pos1 = pos3 - e.clientX;
-                    pos2 = pos4 - e.clientY;
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-                    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-                };
-            };
+            <script>
+                function dragElement(elmnt, posInputId) {{
+                    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                    elmnt.onmousedown = function(e) {{
+                        e = e || window.event;
+                        e.preventDefault();
+                        pos3 = e.clientX;
+                        pos4 = e.clientY;
+                        document.onmouseup = closeDragElement;
+                        document.onmousemove = function(e) {{
+                            e.preventDefault();
+                            pos1 = pos3 - e.clientX;
+                            pos2 = pos4 - e.clientY;
+                            pos3 = e.clientX;
+                            pos4 = e.clientY;
+                            elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                            elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+                        }};
+                    }};
 
-            function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
-                document.getElementById(posInputId).value = elmnt.style.top + "," + elmnt.style.left;
-            }
-        }
+                    function closeDragElement() {{
+                        document.onmouseup = null;
+                        document.onmousemove = null;
+                        document.getElementById(posInputId).value = elmnt.style.top + "," + elmnt.style.left;
+                    }}
+                }}
 
-        // Enable dragging and updating of hidden input fields
-        dragElement(document.getElementById("ctaText"), "ctaPos");
-        dragElement(document.getElementById("descText"), "descPos");
-        dragElement(document.getElementById("logoImage"), "logoPos");
-    </script>
-""", height=img_height)
+                // Enable dragging and updating of hidden input fields
+                dragElement(document.getElementById("ctaText"), "ctaPos");
+                dragElement(document.getElementById("descText"), "descPos");
+                dragElement(document.getElementById("logoImage"), "logoPos");
+            </script>
+        """, height=img_height)
 
         # Capture the positions from the hidden input fields
         cta_pos = st.text_input("CTA Position", value="", key="ctaPos")
