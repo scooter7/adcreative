@@ -14,14 +14,18 @@ def calculate_font_size(draw, text, img_width, img_height, width_percentage, hei
     font_size = 1
     font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
 
-    # Increase font size until the text exceeds width or height constraintswhileTrue:
+    # Increase font size until the text exceeds width or height constraints
+    while True:
         text_width, text_height = draw.textsize(text, font=font)
         if text_width > max_width or text_height > max_height:
             break
         font_size += 1
         font = ImageFont.truetype(DEFAULT_FONT_PATH, font_size)
 
-    # Return the last valid font sizereturn font_size - 1defmerge_text_with_image(image, call_to_action_text, description_text, width_percentages, height_percentages, text_colors, bg_colors, cta_position, desc_position, logo_position, logo_width_percentage, logo_height_percentage, uploaded_logo):
+    # Return the last valid font size
+    return font_size - 1
+
+def merge_text_with_image(image, call_to_action_text, description_text, width_percentages, height_percentages, text_colors, bg_colors, cta_position, desc_position, logo_position, logo_width_percentage, logo_height_percentage, uploaded_logo):
     img = image.copy()
     draw = ImageDraw.Draw(img)
     img_width, img_height = img.size
@@ -47,7 +51,8 @@ def calculate_font_size(draw, text, img_width, img_height, width_percentage, hei
     draw.rectangle([x_desc, y_desc, x_desc + text_width_desc, y_desc + text_height_desc], fill=bg_colors[1])
     draw.text((x_desc, y_desc), description_text, font=font_desc, fill=text_colors[1])
 
-    # Apply logo if uploaded and positions don't overlapif logo_position != cta_position and logo_position != desc_position:
+    # Apply logo if uploaded and positions don't overlap
+    if logo_position != cta_position and logo_position != desc_position:
         img = overlay_logo(img, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage)
 
     return img
@@ -98,17 +103,16 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
 
     return img.convert("RGB")
 
-def download_images(images_with_text, selected_sizes, image_sizes):
-    for idx, image inenumerate(images_with_text):
-        for selected_size_label in selected_sizes:
-            image_size = image_sizes[selected_size_label]
-            image_resized = image.resize(image_size, Image.ANTIALIAS)
-            st.image(image_resized, caption=f"Image {idx + 1} - Size: {selected_size_label}", use_column_width=False)
+def download_images(images_with_text, selected_image_sizes):
+    for idx, image in enumerate(images_with_text):
+        for channel, label, dimensions in selected_image_sizes:
+            image_resized = image.resize(dimensions, Image.ANTIALIAS)
+            st.image(image_resized, caption=f"Image {idx + 1} - Channel: {channel}, Size: {label}", use_column_width=False)
 
             buffered = BytesIO()
             image_resized.save(buffered, format="PNG")
             img_str = base64.b64encode(buffered.getvalue()).decode()
-            href = f'<a href="data:file/png;base64,{img_str}" download="image_{idx + 1}_{selected_size_label}.png">Download Image</a>'
+            href = f'<a href="data:file/png;base64,{img_str}" download="image_{idx + 1}_{channel}_{label}.png">Download Image</a>'
             st.markdown(href, unsafe_allow_html=True)
 
 def main():
@@ -127,9 +131,9 @@ def main():
         st.image(uploaded_logo, caption="Uploaded Logo", use_column_width=True)
 
     num_pairs = st.number_input("Number of Call to Action + Description Pairs", min_value=1, step=1)
-    call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i inrange(num_pairs)]
-    description_texts = [st.text_input(f"Description Text {i + 1}") for i inrange(num_pairs)]
-
+    call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i in range(num_pairs)]
+    description_texts = [st.text_input(f"Description Text {i + 1}") for i in range(num_pairs)]
+    
     width_percentage_cta = st.slider("Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
     height_percentage_cta = st.slider("Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
     width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
@@ -167,32 +171,46 @@ def main():
         "YouTube": {
             "1280x720": (1280, 720),
             "300x250": (300, 250),
-        }
+        },
     }
 
-    selected_sizes = st.multiselect("Select Ad Sizes", [f"{w}x{h}"for size_dict in image_sizes.values() for w, h in size_dict.values()])
+    selected_image_sizes = []
+    for channel, sizes in image_sizes.items():
+        with st.expander(f"{channel}"):
+            st.write(f"Select ad sizes for {channel}:")
+            for label, dimensions in sizes.items():
+                if st.checkbox(label, key=f"{channel}_{label}"):
+                    selected_image_sizes.append((channel, label, dimensions))
 
-    if st.button("Generate Images"):
-        images_with_text = []
-        for uploaded_image in uploaded_images:
-            image = Image.open(uploaded_image)
-            for call_to_action_text, description_text inzip(call_to_action_texts, description_texts):
-                image_with_text = merge_text_with_image(
-                    image, call_to_action_text, description_text,
-                    (width_percentage_cta, width_percentage_desc),
-                    (height_percentage_cta, height_percentage_desc),
-                    (call_to_action_text_color, description_text_color),
-                    (call_to_action_bg_color, description_bg_color),
-                    selected_cta_positions[0] if selected_cta_positions else"top-left",
-                    selected_desc_positions[0] if selected_desc_positions else"top-left",
-                    selected_logo_positions[0] if selected_logo_positions else"top-left",
-                    logo_width_percentage,
-                    logo_height_percentage,
-                    uploaded_logo
-                )
-                images_with_text.append(image_with_text)
-
-        download_images(images_with_text, selected_sizes, image_sizes)
+    if st.button("Merge and Download"):
+        if uploaded_images and selected_cta_positions and selected_desc_positions and selected_logo_positions:
+            st.write("Processing images...")
+            images_with_text = []
+            for image in uploaded_images:
+                img = Image.open(image)
+                for cta_position in selected_cta_positions:
+                    for desc_position in selected_desc_positions:
+                        for logo_position in selected_logo_positions:
+                            if cta_position != desc_position and cta_position != logo_position and desc_position != logo_position:
+                                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
+                                    merged_img = merge_text_with_image(
+                                        img,
+                                        call_to_action_text,
+                                        description_text,
+                                        [width_percentage_cta, width_percentage_desc],
+                                        [height_percentage_cta, height_percentage_desc],
+                                        [call_to_action_text_color, description_text_color],
+                                        [call_to_action_bg_color, description_bg_color],
+                                        cta_position,
+                                        desc_position,
+                                        logo_position,
+                                        logo_width_percentage,
+                                        logo_height_percentage,
+                                        uploaded_logo
+                                    )
+                                    images_with_text.append(merged_img)
+            download_images(images_with_text, selected_image_sizes)
+            st.write("Images processed and available for download!")
 
 if __name__ == "__main__":
     main()
