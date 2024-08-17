@@ -95,7 +95,7 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
     return img.convert("RGB")
 
 def download_images(images_with_text):
-    for idx, (image, call_to_action_text, description_text, logo_base64, img_width, img_height) in enumerate(images_with_text):
+    for idx, image in enumerate(images_with_text):
         st.image(image, caption=f"Image {idx + 1}", use_column_width=False)
 
         buffered = BytesIO()
@@ -103,55 +103,6 @@ def download_images(images_with_text):
         img_str = base64.b64encode(buffered.getvalue()).decode()
         href = f'<a href="data:file/png;base64,{img_str}" download="image_{idx + 1}.png">Download Image</a>'
         st.markdown(href, unsafe_allow_html=True)
-
-        # Adding draggable functionality after resizing and processing
-        add_draggable_functionality(img_str, call_to_action_text, description_text, logo_base64, img_width, img_height)
-
-def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height):
-    st.components.v1.html(f"""
-        <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
-            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; font-size: 24px; color: white;">
-                {call_to_action_text}
-            </div>
-            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; font-size: 18px; color: yellow;">
-                {description_text}
-            </div>
-            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move;">
-                <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
-            </div>
-        </div>
-
-        <script>
-            function dragElement(elmnt) {{
-                var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-                elmnt.onmousedown = function(e) {{
-                    e = e || window.event;
-                    e.preventDefault();
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    document.onmouseup = closeDragElement;
-                    document.onmousemove = function(e) {{
-                        e.preventDefault();
-                        pos1 = pos3 - e.clientX;
-                        pos2 = pos4 - e.clientY;
-                        pos3 = e.clientX;
-                        pos4 = e.clientY;
-                        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-                        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-                    }};
-                }};
-
-                function closeDragElement() {{
-                    document.onmouseup = null;
-                    document.onmousemove = null;
-                }}
-            }}
-
-            dragElement(document.getElementById("ctaText"));
-            dragElement(document.getElementById("descText"));
-            dragElement(document.getElementById("logoImage"));
-        </script>
-    """, height=img_height + 50)
 
 def main():
     st.title("Image Text and Logo Overlay App")
@@ -255,7 +206,7 @@ def main():
                                             logo_height_percentage,
                                             uploaded_logo
                                         )
-                                        images_with_text.append((merged_img, call_to_action_text, description_text, logo_base64, dimensions[0], dimensions[1]))
+                                        images_with_text.append(merged_img)
 
             download_images(images_with_text)
             st.write("Images processed and available for download!")
