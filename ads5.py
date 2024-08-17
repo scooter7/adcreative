@@ -39,7 +39,7 @@ def main():
 
         # Display the image and draggable elements
         st.components.v1.html(f"""
-            <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: cover;">
+            <div style="position: relative; display: inline-block; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat; width: {img_width}px; height: {img_height}px;">
                 <div id="ctaText" style="position: absolute; top: {initial_cta_position['top']}px; left: {initial_cta_position['left']}px; cursor: move; font-size: 24px; color: white;">
                     {cta_text}
                 </div>
@@ -87,7 +87,7 @@ def main():
                 dragElement(document.getElementById("descText"), "descPos");
                 dragElement(document.getElementById("logoImage"), "logoPos");
             </script>
-        """, height=img_height)
+        """, height=img_height + 50)  # Add some height to accommodate dragging
 
         # Capture the positions from the hidden input fields
         cta_pos = st.text_input("CTA Position", value="", key="ctaPos")
