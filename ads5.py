@@ -163,6 +163,13 @@ def main():
     uploaded_images = st.file_uploader("Upload multiple images", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
     uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
 
+    # Preprocess the logo once
+    if uploaded_logo:
+        logo = Image.open(uploaded_logo)
+        buffered_logo = BytesIO()
+        logo.save(buffered_logo, format="PNG")
+        logo_base64 = base64.b64encode(buffered_logo.getvalue()).decode()
+
     if uploaded_images:
         st.write("Images uploaded successfully!")
         for uploaded_image in uploaded_images:
@@ -256,7 +263,7 @@ def main():
                                     merged_img.save(buffered, format="PNG")
                                     img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-                                    add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height)
+                                    add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img.size[0], img.size[1])
                                     images_with_text.append(merged_img)
 
             download_images(images_with_text, selected_image_sizes)
