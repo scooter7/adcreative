@@ -97,13 +97,13 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
 def add_draggable_functionality(img_base64, img_width, img_height, call_to_action_text, description_text, logo_base64):
     st.components.v1.html(f"""
         <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
-            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; font-size: 24px; color: white;">
+            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; font-size: 24px; color: white; background-color: black; padding: 5px;">
                 {call_to_action_text}
             </div>
-            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; font-size: 18px; color: yellow;">
+            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; font-size: 18px; color: yellow; background-color: black; padding: 5px;">
                 {description_text}
             </div>
-            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move;">
+            <div id="logoImage" style="position: absolute; top: 50px; left: 50px; cursor: move;">
                 <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
             </div>
             <input type="hidden" id="ctaPos" name="ctaPos">
@@ -147,7 +147,7 @@ def add_draggable_functionality(img_base64, img_width, img_height, call_to_actio
 def main():
     st.title("Image Text and Logo Overlay App")
 
-    uploaded_images = st.file_uploader("Upload multiple images", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+    uploaded_image = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
     uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
 
     # Preprocess the logo once
@@ -157,68 +157,61 @@ def main():
         logo.save(buffered_logo, format="PNG")
         logo_base64 = base64.b64encode(buffered_logo.getvalue()).decode()
 
-    if uploaded_images:
-        st.write("Images uploaded successfully!")
-        for uploaded_image in uploaded_images:
-            st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
+    if uploaded_image:
+        img = Image.open(uploaded_image)
+        img_width, img_height = img.size
+        st.image(img, caption="Uploaded Image", use_column_width=True)
 
-    if uploaded_logo:
-        st.write("Logo uploaded successfully!")
-        st.image(uploaded_logo, caption="Uploaded Logo", use_column_width=True)
+        if uploaded_logo:
+            st.image(uploaded_logo, caption="Uploaded Logo", use_column_width=True)
 
-    num_pairs = st.number_input("Number of Call to Action + Description Pairs", min_value=1, step=1)
-    call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i in range(num_pairs)]
-    description_texts = [st.text_input(f"Description Text {i + 1}") for i in range(num_pairs)]
-    
-    width_percentage_cta = st.slider("Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
-    height_percentage_cta = st.slider("Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
-    width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
-    height_percentage_desc = st.slider("Description Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
+        num_pairs = st.number_input("Number of Call to Action + Description Pairs", min_value=1, step=1)
+        call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i in range(num_pairs)]
+        description_texts = [st.text_input(f"Description Text {i + 1}") for i in range(num_pairs)]
+        
+        width_percentage_cta = st.slider("Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
+        height_percentage_cta = st.slider("Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
+        width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
+        height_percentage_desc = st.slider("Description Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
 
-    selected_cta_positions = st.selectbox("Select Call to Action Text Position", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
-    selected_desc_positions = st.selectbox("Select Description Text Position", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
+        selected_cta_positions = st.selectbox("Select Call to Action Text Position", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
+        selected_desc_positions = st.selectbox("Select Description Text Position", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
-    call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
-    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
-    description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
-    description_bg_color = st.color_picker("Description Background Color", "#000000")
+        call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
+        call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
+        description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
+        description_bg_color = st.color_picker("Description Background Color", "#000000")
 
-    logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
-    logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
-    selected_logo_positions = st.selectbox("Select Logo Position", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
+        logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
+        logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
+        selected_logo_positions = st.selectbox("Select Logo Position", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
-    if st.button("Generate and Edit"):
-        if uploaded_images and selected_cta_positions and selected_desc_positions and selected_logo_positions:
-            st.write("Processing images...")
-            images_with_text = []
-            for image in uploaded_images:
-                img = Image.open(image)
-                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
-                    merged_img = merge_text_with_image(
-                        img,
-                        call_to_action_text,
-                        description_text,
-                        [width_percentage_cta, width_percentage_desc],
-                        [height_percentage_cta, height_percentage_desc],
-                        [call_to_action_text_color, description_text_color],
-                        [call_to_action_bg_color, description_bg_color],
-                        selected_cta_positions,
-                        selected_desc_positions,
-                        selected_logo_positions,
-                        logo_width_percentage,
-                        logo_height_percentage,
-                        uploaded_logo
-                    )
+        if st.button("Generate and Edit"):
+            st.write("Processing image...")
+            merged_img = merge_text_with_image(
+                img,
+                call_to_action_texts[0] if call_to_action_texts else '',
+                description_texts[0] if description_texts else '',
+                [width_percentage_cta, width_percentage_desc],
+                [height_percentage_cta, height_percentage_desc],
+                [call_to_action_text_color, description_text_color],
+                [call_to_action_bg_color, description_bg_color],
+                selected_cta_positions,
+                selected_desc_positions,
+                selected_logo_positions,
+                logo_width_percentage,
+                logo_height_percentage,
+                uploaded_logo
+            )
 
-                    # Convert merged image to base64 for display and dragging
-                    buffered = BytesIO()
-                    merged_img.save(buffered, format="PNG")
-                    img_base64 = base64.b64encode(buffered.getvalue()).decode()
+            # Convert merged image to base64 for display and dragging
+            buffered = BytesIO()
+            merged_img.save(buffered, format="PNG")
+            img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-                    add_draggable_functionality(img_base64, merged_img.size[0], merged_img.size[1], call_to_action_text, description_text, logo_base64)
-                    images_with_text.append(merged_img)
+            add_draggable_functionality(img_base64, merged_img.size[0], merged_img.size[1], call_to_action_texts[0], description_texts[0], logo_base64)
 
-            st.write("Images processed and available for editing!")
+            st.write("Image processed and available for editing!")
 
 if __name__ == "__main__":
     main()
