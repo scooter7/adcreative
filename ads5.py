@@ -94,7 +94,7 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
 
     return img.convert("RGB")
 
-def download_images(images_with_text, selected_image_sizes):
+def download_images(images_with_text):
     for idx, (image, channel, label, dimensions) in enumerate(images_with_text):
         st.image(image, caption=f"Image {idx + 1} - Channel: {channel}, Size: {label}", use_column_width=False)
 
@@ -105,8 +105,7 @@ def download_images(images_with_text, selected_image_sizes):
         st.markdown(href, unsafe_allow_html=True)
 
         # Adding draggable functionality after resizing and processing
-        img_base64 = img_str
-        add_draggable_functionality(img_base64, channel, label, img.size[0], img.size[1])
+        add_draggable_functionality(img_str, channel, label, dimensions[0], dimensions[1])
 
 def add_draggable_functionality(img_base64, channel, label, img_width, img_height):
     st.components.v1.html(f"""
@@ -254,7 +253,7 @@ def main():
                                         )
                                         images_with_text.append((merged_img, channel, label, dimensions))
 
-            download_images(images_with_text, selected_image_sizes)
+            download_images(images_with_text)
             st.write("Images processed and available for download!")
 
 if __name__ == "__main__":
