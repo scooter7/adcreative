@@ -94,20 +94,7 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
 
     return img.convert("RGB")
 
-def download_images(images_with_text, selected_image_sizes):
-    for idx, image in enumerate(images_with_text):
-        for channel, label, dimensions in selected_image_sizes:
-            image_resized = image.resize(dimensions, Image.ANTIALIAS)
-            st.image(image_resized, caption=f"Image {idx + 1} - Channel: {channel}, Size: {label}", use_column_width=False)
-
-            buffered = BytesIO()
-            image_resized.save(buffered, format="PNG")
-            img_str = base64.b64encode(buffered.getvalue()).decode()
-            href = f'<a href="data:file/png;base64,{img_str}" download="image_{idx + 1}_{channel}_{label}.png">Download Image</a>'
-            st.markdown(href, unsafe_allow_html=True)
-
-def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height):
-    # HTML and JS for draggable elements
+def add_draggable_functionality(img_base64, img_width, img_height, call_to_action_text, description_text, logo_base64):
     st.components.v1.html(f"""
         <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
             <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; font-size: 24px; color: white;">
@@ -188,8 +175,8 @@ def main():
     width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
     height_percentage_desc = st.slider("Description Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
 
-    selected_cta_positions = st.multiselect("Select Call to Action Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
-    selected_desc_positions = st.multiselect("Select Description Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
+    selected_cta_positions = st.selectbox("Select Call to Action Text Position", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
+    selected_desc_positions = st.selectbox("Select Description Text Position", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
     call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
@@ -198,76 +185,40 @@ def main():
 
     logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
     logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
-    selected_logo_positions = st.multiselect("Select Logo Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
+    selected_logo_positions = st.selectbox("Select Logo Position", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
-    image_sizes = {
-        "IP Targeting": {
-            "300x250": (300, 250),
-            "728x90": (728, 90),
-        },
-        "Mobile Footprinting": {
-            "300x250": (300, 250),
-            "728x90": (728, 90),
-        },
-        "Audience Select": {
-            "300x250": (300, 250),
-            "728x90": (728, 90),
-        },
-        "Spotify": {
-            "640x640": (640, 640),
-            "300x250": (300, 250),
-        },
-        "YouTube": {
-            "1280x720": (1280, 720),
-            "300x250": (300, 250),
-        },
-    }
-
-    selected_image_sizes = []
-    for channel, sizes in image_sizes.items():
-        with st.expander(f"{channel}"):
-            st.write(f"Select ad sizes for {channel}:")
-            for label, dimensions in sizes.items():
-                if st.checkbox(label, key=f"{channel}_{label}"):
-                    selected_image_sizes.append((channel, label, dimensions))
-
-    if st.button("Merge and Download"):
+    if st.button("Generate and Edit"):
         if uploaded_images and selected_cta_positions and selected_desc_positions and selected_logo_positions:
             st.write("Processing images...")
             images_with_text = []
             for image in uploaded_images:
                 img = Image.open(image)
-                for cta_position in selected_cta_positions:
-                    for desc_position in selected_desc_positions:
-                        for logo_position in selected_logo_positions:
-                            if cta_position != desc_position and cta_position != logo_position and desc_position != logo_position:
-                                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
-                                    merged_img = merge_text_with_image(
-                                        img,
-                                        call_to_action_text,
-                                        description_text,
-                                        [width_percentage_cta, width_percentage_desc],
-                                        [height_percentage_cta, height_percentage_desc],
-                                        [call_to_action_text_color, description_text_color],
-                                        [call_to_action_bg_color, description_bg_color],
-                                        cta_position,
-                                        desc_position,
-                                        logo_position,
-                                        logo_width_percentage,
-                                        logo_height_percentage,
-                                        uploaded_logo
-                                    )
+                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
+                    merged_img = merge_text_with_image(
+                        img,
+                        call_to_action_text,
+                        description_text,
+                        [width_percentage_cta, width_percentage_desc],
+                        [height_percentage_cta, height_percentage_desc],
+                        [call_to_action_text_color, description_text_color],
+                        [call_to_action_bg_color, description_bg_color],
+                        selected_cta_positions,
+                        selected_desc_positions,
+                        selected_logo_positions,
+                        logo_width_percentage,
+                        logo_height_percentage,
+                        uploaded_logo
+                    )
 
-                                    # Convert merged image to base64
-                                    buffered = BytesIO()
-                                    merged_img.save(buffered, format="PNG")
-                                    img_base64 = base64.b64encode(buffered.getvalue()).decode()
+                    # Convert merged image to base64 for display and dragging
+                    buffered = BytesIO()
+                    merged_img.save(buffered, format="PNG")
+                    img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-                                    add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img.size[0], img.size[1])
-                                    images_with_text.append(merged_img)
+                    add_draggable_functionality(img_base64, merged_img.size[0], merged_img.size[1], call_to_action_text, description_text, logo_base64)
+                    images_with_text.append(merged_img)
 
-            download_images(images_with_text, selected_image_sizes)
-            st.write("Images processed and available for download!")
+            st.write("Images processed and available for editing!")
 
 if __name__ == "__main__":
     main()
