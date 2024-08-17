@@ -39,7 +39,8 @@ def main():
 
         # Display the image and draggable elements
         st.components.v1.html(f"""
-            <div style="position: relative; display: inline-block; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat; width: {img_width}px; height: {img_height}px;">
+            <div style="position: relative; display: inline-block;">
+                <img src="data:image/png;base64,{img_base64}" style="width: {img_width}px; height: {img_height}px;">
                 <div id="ctaText" style="position: absolute; top: {initial_cta_position['top']}px; left: {initial_cta_position['left']}px; cursor: move; font-size: 24px; color: white;">
                     {cta_text}
                 </div>
