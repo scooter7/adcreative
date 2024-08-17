@@ -11,6 +11,10 @@ def get_image_as_base64(image):
 def main():
     st.title("Interactive Image with Draggable Elements")
 
+    # Input fields for CTA and Description text
+    cta_text = st.text_input("Enter Call to Action Text", value="Call to Action")
+    desc_text = st.text_input("Enter Description Text", value="Description Text")
+
     # Upload main image
     uploaded_image = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
 
@@ -37,10 +41,10 @@ def main():
         st.components.v1.html(f"""
             <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: cover;">
                 <div id="ctaText" style="position: absolute; top: {initial_cta_position['top']}px; left: {initial_cta_position['left']}px; cursor: move; font-size: 24px; color: white;">
-                    Call to Action
+                    {cta_text}
                 </div>
                 <div id="descText" style="position: absolute; top: {initial_desc_position['top']}px; left: {initial_desc_position['left']}px; cursor: move; font-size: 18px; color: yellow;">
-                    Description Text
+                    {desc_text}
                 </div>
                 <div id="logoImage" style="position: absolute; top: {initial_logo_position['top']}px; left: {initial_logo_position['left']}px; cursor: move;">
                     <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
