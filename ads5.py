@@ -1,7 +1,7 @@
 import streamlit as st
 from PIL import Image
 
-defmain():
+def main():
     st.title("Image Text and Logo Overlay App")
 
     uploaded_images = st.file_uploader("Upload multiple images", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
