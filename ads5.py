@@ -4,7 +4,9 @@ import streamlit as st
 import base64
 from io import BytesIO
 
-DEFAULT_FONT_PATH = "arial.ttf"def calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage):
+DEFAULT_FONT_PATH = "arial.ttf"
+
+def calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage):
     max_width = img_width * width_percentage
     max_height = img_height * height_percentage
 
