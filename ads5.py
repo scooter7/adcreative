@@ -44,39 +44,39 @@ def merge_text_with_image(image, call_to_action_text, description_text, width_pe
     draw.rectangle([x_desc, y_desc, x_desc + text_width_desc, y_desc + text_height_desc], fill=bg_colors[1])
     draw.text((x_desc, y_desc), description_text, font=font_desc, fill=text_colors[1])
 
-    if logo_position != cta_position and logo_position != desc_position:
+    if uploaded_logo and logo_position != cta_position and logo_position != desc_position:
         img = overlay_logo(img, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage)
 
     return img
 
-def get_position_coordinates(position, img_width, img_height, text_width, text_height, y_offset=0):
+def get_position_coordinates(position, img_width, img_height, text_width, text_height):
     if position == "top-left":
         x = 10
-        y = 10 + y_offset
+        y = 10
     elif position == "top-center":
         x = (img_width - text_width) // 2
-        y = 10 + y_offset
+        y = 10
     elif position == "top-right":
         x = img_width - text_width - 10
-        y = 10 + y_offset
+        y = 10
     elif position == "middle-left":
         x = 10
-        y = (img_height - text_height) // 2 + y_offset
+        y = (img_height - text_height) // 2
     elif position == "middle-center":
         x = (img_width - text_width) // 2
-        y = (img_height - text_height) // 2 + y_offset
+        y = (img_height - text_height) // 2
     elif position == "middle-right":
         x = img_width - text_width - 10
-        y = (img_height - text_height) // 2 + y_offset
+        y = (img_height - text_height) // 2
     elif position == "bottom-left":
         x = 10
-        y = img_height - text_height - 10 + y_offset
+        y = img_height - text_height - 10
     elif position == "bottom-center":
         x = (img_width - text_width) // 2
-        y = img_height - text_height - 10 + y_offset
+        y = img_height - text_height - 10
     elif position == "bottom-right":
         x = img_width - text_width - 10
-        y = img_height - text_height - 10 + y_offset
+        y = img_height - text_height - 10
     return x, y
 
 def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage):
@@ -109,13 +109,6 @@ def main():
 
     uploaded_images = st.file_uploader("Upload multiple images", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
     uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
-
-    # Preprocess the logo once
-    if uploaded_logo:
-        logo = Image.open(uploaded_logo)
-        buffered_logo = BytesIO()
-        logo.save(buffered_logo, format="PNG")
-        logo_base64 = base64.b64encode(buffered_logo.getvalue()).decode()
 
     if uploaded_images:
         st.write("Images uploaded successfully!")
