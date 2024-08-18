@@ -82,6 +82,8 @@ def main():
     if st.button("Merge and Download"):
         if uploaded_images and selected_cta_positions and selected_desc_positions and selected_logo_positions:
             st.write("Processing images...")
+
+            images_data = []
             for image in uploaded_images:
                 for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
                     for cta_position in selected_cta_positions:
@@ -95,18 +97,18 @@ def main():
                                         img_resized.save(buffered, format="PNG")
                                         img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-                                        add_draggable_functionality(
-                                            img_base64,
-                                            call_to_action_text,
-                                            description_text,
-                                            logo_base64 if uploaded_logo else None,
-                                            dimensions[0],
-                                            dimensions[1],
-                                            call_to_action_text_color,
-                                            call_to_action_bg_color,
-                                            description_text_color,
-                                            description_bg_color
-                                        )
+                                        images_data.append({
+                                            'img_base64': img_base64,
+                                            'call_to_action_text': call_to_action_text,
+                                            'description_text': description_text,
+                                            'logo_base64': logo_base64 if uploaded_logo else None,
+                                            'cta_bg_color': call_to_action_bg_color,
+                                            'cta_text_color': call_to_action_text_color,
+                                            'desc_bg_color': description_bg_color,
+                                            'desc_text_color': description_text_color
+                                        })
+
+            add_draggable_functionality(images_data, dimensions[0], dimensions[1])
 
 def add_draggable_functionality(images_data, img_width, img_height):
     html_parts = []
@@ -240,33 +242,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
     # Combine HTML and JS into the final component
     st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
-
-# Example usage:
-images_data = [
-    {
-        'img_base64': 'base64string1',
-        'call_to_action_text': 'CTA Text 1',
-        'description_text': 'Description 1',
-        'logo_base64': 'logoBase64String1',
-        'cta_bg_color': '#ff0000',
-        'cta_text_color': '#ffffff',
-        'desc_bg_color': '#00ff00',
-        'desc_text_color': '#000000'
-    },
-    {
-        'img_base64': 'base64string2',
-        'call_to_action_text': 'CTA Text 2',
-        'description_text': 'Description 2',
-        'logo_base64': 'logoBase64String2',
-        'cta_bg_color': '#0000ff',
-        'cta_text_color': '#ffffff',
-        'desc_bg_color': '#ffff00',
-        'desc_text_color': '#000000'
-    },
-    # Add more image data as needed...
-]
-
-add_draggable_functionality(images_data, img_width=800, img_height=600)
 
 if __name__ == "__main__":
     main()
