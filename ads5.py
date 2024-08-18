@@ -94,13 +94,13 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
 
     return img.convert("RGB")
 
-def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height):
+def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height, text_colors, bg_colors):
     st.components.v1.html(f"""
         <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
-            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; font-size: 24px; color: white;">
+            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; background-color:{bg_colors[0]}; color:{text_colors[0]}; padding: 5px;">
                 {call_to_action_text}
             </div>
-            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; font-size: 18px; color: yellow;">
+            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; background-color:{bg_colors[1]}; color:{text_colors[1]}; padding: 5px;">
                 {description_text}
             </div>
             <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move;">
@@ -140,7 +140,7 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
         </script>
     """, height=img_height + 50)
 
-def download_images(images_with_text, call_to_action_text, description_text, logo_base64):
+def download_images(images_with_text, call_to_action_text, description_text, logo_base64, text_colors, bg_colors):
     for idx, image in enumerate(images_with_text):
         st.image(image, caption=f"Image {idx + 1}", use_column_width=False)
 
@@ -151,7 +151,7 @@ def download_images(images_with_text, call_to_action_text, description_text, log
         st.markdown(href, unsafe_allow_html=True)
 
         # Add draggable functionality
-        add_draggable_functionality(img_str, call_to_action_text, description_text, logo_base64, image.size[0], image.size[1])
+        add_draggable_functionality(img_str, call_to_action_text, description_text, logo_base64, image.size[0], image.size[1], text_colors, bg_colors)
 
 def main():
     st.title("Image Text and Logo Overlay App")
@@ -256,7 +256,7 @@ def main():
                                         )
                                         images_with_text.append(merged_img)
 
-            download_images(images_with_text, call_to_action_texts[0], description_texts[0], logo_base64)
+            download_images(images_with_text, call_to_action_texts[0], description_texts[0], logo_base64, [call_to_action_text_color, description_text_color], [call_to_action_bg_color, description_bg_color])
             st.write("Images processed and available for download!")
 
 if __name__ == "__main__":
