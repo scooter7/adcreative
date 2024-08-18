@@ -111,10 +111,10 @@ def main():
 def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height, cta_text_color, cta_bg_color, desc_text_color, desc_bg_color):
     html_part_1 = f"""
         <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
-            <div id="ctaText" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; min-width: 50px; min-height: 30px;">
+            <div id="ctaText" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; min-width: 50px; min-height: 30px; font-size: 16px;">
                 {call_to_action_text}
             </div>
-            <div id="descText" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px; min-width: 50px; min-height: 30px;">
+            <div id="descText" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px; min-width: 50px; min-height: 30px; font-size: 16px;">
                 {description_text}
             </div>
             <div id="logoImage" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; min-width: 50px; min-height: 30px;">
