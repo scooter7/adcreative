@@ -82,6 +82,8 @@ def main():
     if st.button("Merge and Download"):
         if uploaded_images and selected_cta_positions and selected_desc_positions and selected_logo_positions:
             st.write("Processing images...")
+
+            images_data = []
             for image in uploaded_images:
                 for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
                     for cta_position in selected_cta_positions:
@@ -95,63 +97,77 @@ def main():
                                         img_resized.save(buffered, format="PNG")
                                         img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-                                        add_draggable_functionality(
-                                            img_base64,
-                                            call_to_action_text,
-                                            description_text,
-                                            logo_base64 if uploaded_logo else None,
-                                            dimensions[0],
-                                            dimensions[1],
-                                            call_to_action_text_color,
-                                            call_to_action_bg_color,
-                                            description_text_color,
-                                            description_bg_color
-                                        )
+                                        images_data.append({
+                                            'img_base64': img_base64,
+                                            'call_to_action_text': call_to_action_text,
+                                            'description_text': description_text,
+                                            'logo_base64': logo_base64 if uploaded_logo else None,
+                                            'cta_bg_color': call_to_action_bg_color,
+                                            'cta_text_color': call_to_action_text_color,
+                                            'desc_bg_color': description_bg_color,
+                                            'desc_text_color': description_text_color
+                                        })
 
-def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height, cta_text_color, cta_bg_color, desc_text_color, desc_bg_color):
-    html_part_1 = f"""
-        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
-            <div id="ctaText" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; min-width: 50px; min-height: 30px;">
-                {call_to_action_text}
-            </div>
-            <div id="descText" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px; min-width: 50px; min-height: 30px;">
-                {description_text}
-            </div>
-            <div id="logoImage" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; min-width: 50px; min-height: 30px;">
-                <img src="data:image/png;base64,{logo_base64}" style="width: 100%; height: auto;">
-            </div>
-        </div>
-        <button onclick="saveImage()">Merge and Download</button>
-    """
+            add_draggable_functionality(images_data, dimensions[0], dimensions[1])
 
+def add_draggable_functionality(images_data, img_width, img_height):
+    html_parts = []
+    
+    # Iterate over each image and its associated data
+    for index, data in enumerate(images_data):
+        cta_id = f"ctaText_{index}"
+        desc_id = f"descText_{index}"
+        logo_id = f"logoImage_{index}"
+
+        # Generate HTML for each image
+        html_part = f"""
+            <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
+                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 5px; min-width: 50px; min-height: 30px; font-size: 16px;">
+                    {data['call_to_action_text']}
+                </div>
+                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 5px; min-width: 50px; min-height: 30px; font-size: 16px;">
+                    {data['description_text']}
+                </div>
+                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; min-width: 50px; min-height: 30px;">
+                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto;">
+                </div>
+            </div>
+        """
+        html_parts.append(html_part)
+
+    # Combine all HTML parts into a single string
+    html_content = "\n".join(html_parts)
+
+    # Generate JavaScript for each image
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
-            // Draggable and resizable elements setup
-            interact('.draggable').draggable({
-                inertia: true,
-                modifiers: [
-                    interact.modifiers.restrictRect({
-                        restriction: 'parent',
-                        endOnly: true
-                    })
-                ],
-                autoScroll: true,
-                onmove: dragMoveListener
-            }).resizable({
-                edges: { left: true, right: true, bottom: true, top: true },
-                inertia: true,
-                modifiers: [
-                    interact.modifiers.restrictEdges({
-                        outer: 'parent'
-                    }),
-                    interact.modifiers.restrictSize({
-                        min: { width: 50, height: 20 }
-                    })
-                ],
-                onmove: resizeMoveListener
-            });
+            function applyInteractions(elementId) {
+                interact('#' + elementId).draggable({
+                    inertia: true,
+                    modifiers: [
+                        interact.modifiers.restrictRect({
+                            restriction: 'parent',
+                            endOnly: true
+                        })
+                    ],
+                    autoScroll: true,
+                    onmove: dragMoveListener
+                }).resizable({
+                    edges: { left: true, right: true, bottom: true, top: true },
+                    inertia: true,
+                    modifiers: [
+                        interact.modifiers.restrictEdges({
+                            outer: 'parent'
+                        }),
+                        interact.modifiers.restrictSize({
+                            min: { width: 50, height: 20 }
+                        })
+                    ],
+                    onmove: resizeMoveListener
+                });
+            }
 
             function dragMoveListener(event) {
                 var target = event.target,
@@ -180,38 +196,52 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
 
-                if (target.id === 'ctaText' || target.id === 'descText') {
+                if (target.id.includes('ctaText') || target.id.includes('descText')) {
                     let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
                     target.style.fontSize = newFontSize + 'px';
                 }
 
-                if (target.id === 'logoImage') {
+                if (target.id.includes('logoImage')) {
                     let img = target.querySelector('img');
                     img.style.width = '100%';
                     img.style.height = 'auto';
                 }
             }
 
-            // Save Image Function with Debugging
             function saveImage() {
                 console.log("Merge and Download button clicked");
-                html2canvas(document.getElementById('imageContainer')).then(function(canvas) {
-                    console.log("Canvas generated, preparing download...");
-                    var dataURL = canvas.toDataURL('image/png');
-                    var link = document.createElement('a');
-                    link.href = dataURL;
-                    link.download = 'final_image.png';
-                    console.log("Triggering download...");
-                    link.click();
-                    console.log("Download triggered.");
-                }).catch(function(error) {
-                    console.error("Error capturing the image: ", error);
+                var images = document.querySelectorAll("[id^='imageContainer_']");
+                images.forEach(function(imageContainer, index) {
+                    html2canvas(imageContainer).then(function(canvas) {
+                        console.log("Canvas generated for image " + index + ", preparing download...");
+                        var dataURL = canvas.toDataURL('image/png');
+                        var link = document.createElement('a');
+                        link.href = dataURL;
+                        link.download = 'final_image_' + index + '.png';
+                        console.log("Triggering download for image " + index + "...");
+                        link.click();
+                        console.log("Download triggered for image " + index + ".");
+                    }).catch(function(error) {
+                        console.error("Error capturing the image " + index + ": ", error);
+                    });
                 });
             }
+
+            // Apply interactions to each element with unique IDs
+    """
+    for index in range(len(images_data)):
+        js_part += f"""
+            applyInteractions('ctaText_{index}');
+            applyInteractions('descText_{index}');
+            applyInteractions('logoImage_{index}');
+        """
+
+    js_part += """
         </script>
     """
 
-    st.components.v1.html(html_part_1 + js_part, height=img_height + 300)
+    # Combine HTML and JS into the final component
+    st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
 
 if __name__ == "__main__":
     main()
