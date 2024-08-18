@@ -27,6 +27,7 @@ def merge_text_with_image(image, call_to_action_text, description_text, width_pe
     draw = ImageDraw.Draw(img)
     img_width, img_height = img.size
 
+    # Calculating font sizes
     font_size_cta = calculate_font_size(draw, call_to_action_text, img_width, img_height, width_percentages[0], height_percentages[0])
     font_size_desc = calculate_font_size(draw, description_text, img_width, img_height, width_percentages[1], height_percentages[1])
     font_cta = ImageFont.truetype(DEFAULT_FONT_PATH, font_size_cta)
@@ -38,16 +39,22 @@ def merge_text_with_image(image, call_to_action_text, description_text, width_pe
     text_width_desc, text_height_desc = draw.textsize(description_text, font=font_desc)
     x_desc, y_desc = get_position_coordinates(desc_position, img_width, img_height, text_width_desc, text_height_desc)
 
+    # No fixed text placement, everything will be draggable
+    # Prepare the image with the text and background, convert to base64
     draw.rectangle([x_cta, y_cta, x_cta + text_width_cta, y_cta + text_height_cta], fill=bg_colors[0])
     draw.text((x_cta, y_cta), call_to_action_text, font=font_cta, fill=text_colors[0])
 
     draw.rectangle([x_desc, y_desc, x_desc + text_width_desc, y_desc + text_height_desc], fill=bg_colors[1])
     draw.text((x_desc, y_desc), description_text, font=font_desc, fill=text_colors[1])
 
-    if uploaded_logo and logo_position != cta_position and logo_position != desc_position:
+    if uploaded_logo:
         img = overlay_logo(img, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage)
 
-    return img
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+    return img_base64
 
 def get_position_coordinates(position, img_width, img_height, text_width, text_height):
     if position == "top-left":
@@ -239,7 +246,7 @@ def main():
                                     for channel, label, dimensions in selected_image_sizes:
                                         img = Image.open(image)
                                         img_resized = img.resize(dimensions, Image.ANTIALIAS)
-                                        merged_img = merge_text_with_image(
+                                        img_base64 = merge_text_with_image(
                                             img_resized,
                                             call_to_action_text,
                                             description_text,
@@ -254,9 +261,9 @@ def main():
                                             logo_height_percentage,
                                             uploaded_logo
                                         )
-                                        images_with_text.append(merged_img)
+                                        images_with_text.append(img_resized)
 
-            download_images(images_with_text, call_to_action_texts[0], description_texts[0], logo_base64, [call_to_action_text_color, description_text_color], [call_to_action_bg_color, description_bg_color])
+            download_images(images_with_text, call_to_action_texts[0], description_texts[0], logo_base64 if uploaded_logo else None, [call_to_action_text_color, description_text_color], [call_to_action_bg_color, description_bg_color])
             st.write("Images processed and available for download!")
 
 if __name__ == "__main__":
