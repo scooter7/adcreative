@@ -6,6 +6,7 @@ from io import BytesIO
 
 DEFAULT_FONT_PATH = "arial.ttf"
 
+# Calculate the font size for the given text based on image dimensions and desired percentage coverage
 def calculate_font_size(draw, text, img_width, img_height, width_percentage, height_percentage):
     max_width = img_width * width_percentage
     max_height = img_height * height_percentage
@@ -22,6 +23,7 @@ def calculate_font_size(draw, text, img_width, img_height, width_percentage, hei
 
     return font_size - 1
 
+# Merge text and logo with the image
 def merge_text_with_image(image, call_to_action_text, description_text, width_percentages, height_percentages, text_colors, bg_colors, cta_position, desc_position, logo_position, logo_width_percentage, logo_height_percentage, uploaded_logo):
     img = image.copy()
     draw = ImageDraw.Draw(img)
@@ -58,6 +60,7 @@ def merge_text_with_image(image, call_to_action_text, description_text, width_pe
 
     return img, img_base64
 
+# Get coordinates for positioning elements
 def get_position_coordinates(position, img_width, img_height, text_width, text_height):
     if position == "top-left":
         x = 10
@@ -88,6 +91,7 @@ def get_position_coordinates(position, img_width, img_height, text_width, text_h
         y = img_height - text_height - 10
     return x, y
 
+# Overlay the logo on the image
 def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage):
     img = image.convert("RGBA")
     logo = Image.open(uploaded_logo).convert("RGBA")
@@ -103,16 +107,17 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
 
     return img.convert("RGB")
 
+# Add draggable functionality with saving option
 def add_draggable_functionality(img_base64, img_with_text, call_to_action_text, description_text, logo_base64, img_width, img_height, text_colors, bg_colors, font_size_cta, font_size_desc):
     st.components.v1.html(f"""
         <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
-            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; background-color:{bg_colors[0]}; color:{text_colors[0]}; padding: 5px;">
+            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; background-color:{bg_colors[0]}; color:{text_colors[0]}; padding: 5px; resize: both; overflow: auto;">
                 {call_to_action_text}
             </div>
-            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; background-color:{bg_colors[1]}; color:{text_colors[1]}; padding: 5px;">
+            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; background-color:{bg_colors[1]}; color:{text_colors[1]}; padding: 5px; resize: both; overflow: auto;">
                 {description_text}
             </div>
-            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move;">
+            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move; resize: both; overflow: auto;">
                 <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
             </div>
         </div>
@@ -150,12 +155,12 @@ def add_draggable_functionality(img_base64, img_with_text, call_to_action_text, 
                 var descElement = document.getElementById("descText");
                 var logoElement = document.getElementById("logoImage");
 
-                // Get positions
+                // Get positions and sizes
                 var ctaPosition = ctaElement.getBoundingClientRect();
                 var descPosition = descElement.getBoundingClientRect();
                 var logoPosition = logoElement.getBoundingClientRect();
 
-                // Adjust canvas and redraw the image with adjusted positions
+                // Adjust canvas and redraw the image with adjusted positions and sizes
                 var canvas = document.createElement('canvas');
                 canvas.width = {img_width};
                 canvas.height = {img_height};
@@ -168,14 +173,14 @@ def add_draggable_functionality(img_base64, img_with_text, call_to_action_text, 
                     // Draw Call to Action text
                     ctx.fillStyle = '{bg_colors[0]}';
                     ctx.fillRect(ctaPosition.left - 50, ctaPosition.top - 50, ctaElement.clientWidth, ctaElement.clientHeight);
-                    ctx.font = '{font_size_cta}px Arial';
+                    ctx.font = ctaElement.style.fontSize + " Arial";
                     ctx.fillStyle = '{text_colors[0]}';
                     ctx.fillText(ctaElement.textContent, ctaPosition.left - 50, ctaPosition.top - 50 + ctaElement.clientHeight);
 
                     // Draw Description text
                     ctx.fillStyle = '{bg_colors[1]}';
                     ctx.fillRect(descPosition.left - 50, descPosition.top - 50, descElement.clientWidth, descElement.clientHeight);
-                    ctx.font = '{font_size_desc}px Arial';
+                    ctx.font = descElement.style.fontSize + " Arial";
                     ctx.fillStyle = '{text_colors[1]}';
                     ctx.fillText(descElement.textContent, descPosition.left - 50, descPosition.top - 50 + descElement.clientHeight);
 
@@ -200,6 +205,7 @@ def add_draggable_functionality(img_base64, img_with_text, call_to_action_text, 
         </script>
     """, height=img_height + 100)
 
+# Download images after processing
 def download_images(images_with_text, call_to_action_text, description_text, logo_base64, text_colors, bg_colors, font_size_cta, font_size_desc):
     for idx, (image, img_base64) in enumerate(images_with_text):
         st.image(image, caption=f"Image {idx + 1}", use_column_width=False)
@@ -207,6 +213,7 @@ def download_images(images_with_text, call_to_action_text, description_text, log
         # Add draggable functionality with saving option
         add_draggable_functionality(img_base64, image, call_to_action_text, description_text, logo_base64, image.size[0], image.size[1], text_colors, bg_colors, font_size_cta, font_size_desc)
 
+# Main function to handle the Streamlit app logic
 def main():
     st.title("Image Text and Logo Overlay App")
 
