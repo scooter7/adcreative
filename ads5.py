@@ -127,68 +127,69 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
-            // Make elements draggable and resizable
-            interact('.draggable')
-                .draggable({{
-                    inertia: true,
-                    modifiers: [
-                        interact.modifiers.restrictRect({{ restriction: 'parent', endOnly: true }})
-                    ],
-                    autoScroll: true,
-                    onmove: dragMoveListener
-                }})
-                .resizable({{
-                    edges: {{ left: true, right: true, bottom: true, top: true }},
-                    inertia: true,
-                    modifiers: [
-                        interact.modifiers.restrictEdges({{ outer: 'parent' }}),
-                        interact.modifiers.restrictSize({{ min: {{ width: 50, height: 20 }} }})
-                    ],
-                    onmove: resizeMoveListener
-                }});
+            // Make elements draggable
+            interact('.draggable').draggable({
+                inertia: true,
+                modifiers: [
+                    interact.modifiers.restrictRect({
+                        restriction: 'parent',
+                        endOnly: true
+                    })
+                ],
+                autoScroll: true,
+                onmove: function (event) {
+                    var target = event.target,
+                        x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+                        y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-            function dragMoveListener(event) {{
-                var target = event.target;
-                // keep the dragged position in the data-x/data-y attributes
-                var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
 
-                // translate the element
-                target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+                    target.setAttribute('data-x', x);
+                    target.setAttribute('data-y', y);
+                }
+            });
 
-                // update the position attributes
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
-            }}
+            // Make elements resizable
+            interact('.resizable').resizable({
+                edges: { left: true, right: true, bottom: true, top: true },
+                inertia: true,
+                modifiers: [
+                    interact.modifiers.restrictEdges({
+                        outer: 'parent'
+                    }),
+                    interact.modifiers.restrictSize({
+                        min: { width: 50, height: 20 }
+                    })
+                ],
+                onmove: function (event) {
+                    var target = event.target,
+                        x = (parseFloat(target.getAttribute('data-x')) || 0),
+                        y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-            function resizeMoveListener(event) {{
-                var target = event.target,
-                    x = (parseFloat(target.getAttribute('data-x')) || 0),
-                    y = (parseFloat(target.getAttribute('data-y')) || 0);
+                    target.style.width = event.rect.width + 'px';
+                    target.style.height = event.rect.height + 'px';
 
-                // update the element's style
-                target.style.width = event.rect.width + 'px';
-                target.style.height = event.rect.height + 'px';
+                    // translate when resizing from top or left edges
+                    x += event.deltaRect.left;
+                    y += event.deltaRect.top;
 
-                // translate when resizing from top or left edges
-                x += event.deltaRect.left;
-                y += event.deltaRect.top;
+                    target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
 
-                target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+                    target.setAttribute('data-x', x);
+                    target.setAttribute('data-y', y);
+                }
+            });
 
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
-            }}
-
-            window.saveImage = function() {{
-                html2canvas(document.getElementById('imageContainer')).then(function(canvas) {{
+            // Function to save the image with all elements
+            function saveImage() {
+                html2canvas(document.getElementById('imageContainer')).then(function(canvas) {
                     var dataURL = canvas.toDataURL('image/png');
                     var link = document.createElement('a');
                     link.href = dataURL;
                     link.download = 'final_image.png';
                     link.click();
-                }});
-            }};
+                });
+            }
         </script>
     """, height=img_height + 300)
 
