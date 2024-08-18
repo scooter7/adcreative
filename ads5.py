@@ -308,9 +308,13 @@ def main():
                                             logo_height_percentage,
                                             uploaded_logo
                                         )
+                                        # Calculate font sizes again here to pass to download_images
+                                        draw = ImageDraw.Draw(img_with_text)
+                                        font_size_cta = calculate_font_size(draw, call_to_action_text, dimensions[0], dimensions[1], width_percentage_cta, height_percentage_cta)
+                                        font_size_desc = calculate_font_size(draw, description_text, dimensions[0], dimensions[1], width_percentage_desc, height_percentage_desc)
                                         images_with_text.append((img_with_text, img_base64))
 
-            download_images(images_with_text, call_to_action_texts[0], description_texts[0], logo_base64 if uploaded_logo else None, [call_to_action_text_color, description_text_color], [call_to_action_bg_color, description_bg_color])
+            download_images(images_with_text, call_to_action_texts[0], description_texts[0], logo_base64 if uploaded_logo else None, [call_to_action_text_color, description_text_color], [call_to_action_bg_color, description_bg_color], font_size_cta, font_size_desc)
             st.write("Images processed and available for download!")
 
 if __name__ == "__main__":
