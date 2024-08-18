@@ -110,78 +110,53 @@ def main():
 
 def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height, cta_text_color, cta_bg_color, desc_text_color, desc_bg_color):
     st.components.v1.html(f"""
-        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat; border: 1px solid #ccc;">
-            <div id="ctaText" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; font-size: 16px;">
+        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
+            <div id="ctaText" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; resize: both; overflow: hidden; min-width: 50px; min-height: 30px; font-size: 16px;">
                 {call_to_action_text}
             </div>
-            <div id="descText" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px; font-size: 16px;">
+            <div id="descText" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px; resize: both; overflow: hidden; min-width: 50px; min-height: 30px; font-size: 16px;">
                 {description_text}
             </div>
-            <div id="logoImage" class="draggable resizable" style="position: absolute; top: 250px; left: 50px;">
+            <div id="logoImage" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; resize: both; overflow: hidden; min-width: 50px; min-height: 30px;">
                 <img src="data:image/png;base64,{logo_base64}" style="width: 100%; height: auto;">
             </div>
         </div>
 
-        <button onclick="saveImage()" style="margin-top: 20px;">Save Image</button>
+        <button onclick="saveImage()">Save Image</button>
 
-        <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
-            // Make elements draggable and resizable using Interact.js
-            interact('.draggable')
-                .draggable({{
-                    inertia: true,
-                    modifiers: [
-                        interact.modifiers.restrictRect({{
-                            restriction: 'parent',
-                            endOnly: true
-                        }})
-                    ],
-                    autoScroll: true,
-                    onmove: function (event) {{
-                        var target = event.target;
-                        var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                        var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-                        target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
-                        target.setAttribute('data-x', x);
-                        target.setAttribute('data-y', y);
+            // Dragging functionality
+            function dragElement(elmnt) {{
+                elmnt.addEventListener('mousedown', function(e) {{
+                    var offsetX = e.clientX - parseInt(window.getComputedStyle(elmnt).left);
+                    var offsetY = e.clientY - parseInt(window.getComputedStyle(elmnt).top);
+                    function mouseMoveHandler(e) {{
+                        elmnt.style.left = (e.clientX - offsetX) + 'px';
+                        elmnt.style.top = (e.clientY - offsetY) + 'px';
                     }}
-                }})
-                .resizable({{
-                    edges: {{ left: true, right: true, bottom: true, top: true }},
-                    inertia: true,
-                    modifiers: [
-                        interact.modifiers.restrictEdges({{
-                            outer: 'parent'
-                        }}),
-                        interact.modifiers.restrictSize({{
-                            min: {{ width: 50, height: 50 }}
-                        }})
-                    ],
-                    onmove: function (event) {{
-                        var target = event.target;
-                        var x = (parseFloat(target.getAttribute('data-x')) || 0);
-                        var y = (parseFloat(target.getAttribute('data-y')) || 0);
+                    function reset() {{
+                        document.removeEventListener('mousemove', mouseMoveHandler);
+                        document.removeEventListener('mouseup', reset);
+                    }}
+                    document.addEventListener('mousemove', mouseMoveHandler);
+                    document.addEventListener('mouseup', reset);
+                }});
+            }}
 
-                        // Update the element's size
-                        target.style.width = event.rect.width + 'px';
-                        target.style.height = event.rect.height + 'px';
-
-                        // Update font size dynamically based on element size
-                        let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
-                        target.style.fontSize = newFontSize + 'px';
-
-                        // Translate when resizing from the edges
-                        x += event.deltaRect.left;
-                        y += event.deltaRect.top;
-
-                        target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-                        target.setAttribute('data-x', x);
-                        target.setAttribute('data-y', y);
+            // Resizing functionality
+            function resizeElement(elmnt) {{
+                var observer = new ResizeObserver(function(entries) {{
+                    for (let entry of entries) {{
+                        let width = entry.contentRect.width;
+                        let height = entry.contentRect.height;
+                        let newFontSize = Math.min(width, height) / 5;  // Adjust this ratio as needed
+                        elmnt.style.fontSize = newFontSize + 'px';
                     }}
                 }});
+                observer.observe(elmnt);
+            }}
 
-            // Function to save the image with all elements
+            // Save Image Function
             function saveImage() {{
                 html2canvas(document.getElementById('imageContainer')).then(function(canvas) {{
                     var dataURL = canvas.toDataURL('image/png');
@@ -191,8 +166,16 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                     link.click();
                 }});
             }}
+
+            // Apply dragging and resizing to the elements
+            dragElement(document.getElementById("ctaText"));
+            dragElement(document.getElementById("descText"));
+            dragElement(document.getElementById("logoImage"));
+
+            resizeElement(document.getElementById("ctaText"));
+            resizeElement(document.getElementById("descText"));
         </script>
-    """, height=img_height + 300)
+    """, height=img_height + 150)
 
 if __name__ == "__main__":
     main()
