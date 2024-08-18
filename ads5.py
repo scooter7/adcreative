@@ -56,7 +56,7 @@ def merge_text_with_image(image, call_to_action_text, description_text, width_pe
     img.save(buffered, format="PNG")
     img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    return img_base64
+    return img, img_base64
 
 def get_position_coordinates(position, img_width, img_height, text_width, text_height):
     if position == "top-left":
@@ -103,9 +103,9 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
 
     return img.convert("RGB")
 
-def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height, text_colors, bg_colors):
+def add_draggable_functionality(img_base64, img_with_text, call_to_action_text, description_text, logo_base64, img_width, img_height, text_colors, bg_colors):
     st.components.v1.html(f"""
-        <div style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
+        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
             <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; background-color:{bg_colors[0]}; color:{text_colors[0]}; padding: 5px;">
                 {call_to_action_text}
             </div>
@@ -116,6 +116,8 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
             </div>
         </div>
+
+        <button onclick="saveImage()">Save Image</button>
 
         <script>
             function dragElement(elmnt) {{
@@ -143,24 +145,67 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 }}
             }}
 
+            function saveImage() {{
+                var ctaElement = document.getElementById("ctaText");
+                var descElement = document.getElementById("descText");
+                var logoElement = document.getElementById("logoImage");
+
+                // Get positions
+                var ctaPosition = ctaElement.getBoundingClientRect();
+                var descPosition = descElement.getBoundingClientRect();
+                var logoPosition = logoElement.getBoundingClientRect();
+
+                // Adjust canvas and redraw the image with adjusted positions
+                var canvas = document.createElement('canvas');
+                canvas.width = {img_width};
+                canvas.height = {img_height};
+                var ctx = canvas.getContext('2d');
+
+                var img = new Image();
+                img.onload = function() {{
+                    ctx.drawImage(img, 0, 0);
+
+                    // Draw Call to Action text
+                    ctx.fillStyle = '{bg_colors[0]}';
+                    ctx.fillRect(ctaPosition.left - 50, ctaPosition.top - 50, ctaElement.clientWidth, ctaElement.clientHeight);
+                    ctx.font = '{font_size_cta}px Arial';
+                    ctx.fillStyle = '{text_colors[0]}';
+                    ctx.fillText(ctaElement.textContent, ctaPosition.left - 50, ctaPosition.top - 50 + ctaElement.clientHeight);
+
+                    // Draw Description text
+                    ctx.fillStyle = '{bg_colors[1]}';
+                    ctx.fillRect(descPosition.left - 50, descPosition.top - 50, descElement.clientWidth, descElement.clientHeight);
+                    ctx.font = '{font_size_desc}px Arial';
+                    ctx.fillStyle = '{text_colors[1]}';
+                    ctx.fillText(descElement.textContent, descPosition.left - 50, descPosition.top - 50 + descElement.clientHeight);
+
+                    // Draw Logo
+                    var logoImg = new Image();
+                    logoImg.src = 'data:image/png;base64,{logo_base64}';
+                    ctx.drawImage(logoImg, logoPosition.left - 50, logoPosition.top - 50, logoElement.clientWidth, logoElement.clientHeight);
+
+                    // Save canvas as image
+                    var dataURL = canvas.toDataURL('image/png');
+                    var link = document.createElement('a');
+                    link.href = dataURL;
+                    link.download = 'final_image.png';
+                    link.click();
+                }};
+                img.src = 'data:image/png;base64,{img_base64}';
+            }}
+
             dragElement(document.getElementById("ctaText"));
             dragElement(document.getElementById("descText"));
             dragElement(document.getElementById("logoImage"));
         </script>
-    """, height=img_height + 50)
+    """, height=img_height + 100)
 
 def download_images(images_with_text, call_to_action_text, description_text, logo_base64, text_colors, bg_colors):
-    for idx, image in enumerate(images_with_text):
+    for idx, (image, img_base64) in enumerate(images_with_text):
         st.image(image, caption=f"Image {idx + 1}", use_column_width=False)
 
-        buffered = BytesIO()
-        image.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
-        href = f'<a href="data:file/png;base64,{img_str}" download="image_{idx + 1}.png">Download Image</a>'
-        st.markdown(href, unsafe_allow_html=True)
-
-        # Add draggable functionality
-        add_draggable_functionality(img_str, call_to_action_text, description_text, logo_base64, image.size[0], image.size[1], text_colors, bg_colors)
+        # Add draggable functionality with saving option
+        add_draggable_functionality(img_base64, image, call_to_action_text, description_text, logo_base64, image.size[0], image.size[1], text_colors, bg_colors)
 
 def main():
     st.title("Image Text and Logo Overlay App")
@@ -248,7 +293,7 @@ def main():
                                     for channel, label, dimensions in selected_image_sizes:
                                         img = Image.open(image)
                                         img_resized = img.resize(dimensions, Image.ANTIALIAS)
-                                        img_base64 = merge_text_with_image(
+                                        img_with_text, img_base64 = merge_text_with_image(
                                             img_resized,
                                             call_to_action_text,
                                             description_text,
@@ -263,7 +308,7 @@ def main():
                                             logo_height_percentage,
                                             uploaded_logo
                                         )
-                                        images_with_text.append(img_resized)
+                                        images_with_text.append((img_with_text, img_base64))
 
             download_images(images_with_text, call_to_action_texts[0], description_texts[0], logo_base64 if uploaded_logo else None, [call_to_action_text_color, description_text_color], [call_to_action_bg_color, description_bg_color])
             st.write("Images processed and available for download!")
