@@ -128,16 +128,16 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
             // Make elements draggable
-            interact('.draggable').draggable({
+            interact('.draggable').draggable({{
                 inertia: true,
                 modifiers: [
-                    interact.modifiers.restrictRect({
+                    interact.modifiers.restrictRect({{
                         restriction: 'parent',
                         endOnly: true
-                    })
+                    }})
                 ],
                 autoScroll: true,
-                onmove: function (event) {
+                onmove: function (event) {{
                     var target = event.target,
                         x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
                         y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
@@ -146,22 +146,22 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
 
                     target.setAttribute('data-x', x);
                     target.setAttribute('data-y', y);
-                }
-            });
+                }}
+            }});
 
             // Make elements resizable
-            interact('.resizable').resizable({
-                edges: { left: true, right: true, bottom: true, top: true },
+            interact('.resizable').resizable({{
+                edges: {{ left: true, right: true, bottom: true, top: true }},
                 inertia: true,
                 modifiers: [
-                    interact.modifiers.restrictEdges({
+                    interact.modifiers.restrictEdges({{
                         outer: 'parent'
-                    }),
-                    interact.modifiers.restrictSize({
-                        min: { width: 50, height: 20 }
-                    })
+                    }}),
+                    interact.modifiers.restrictSize({{
+                        min: {{ width: 50, height: 20 }}
+                    }})
                 ],
-                onmove: function (event) {
+                onmove: function (event) {{
                     var target = event.target,
                         x = (parseFloat(target.getAttribute('data-x')) || 0),
                         y = (parseFloat(target.getAttribute('data-y')) || 0);
@@ -177,19 +177,19 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
 
                     target.setAttribute('data-x', x);
                     target.setAttribute('data-y', y);
-                }
-            });
+                }}
+            }});
 
             // Function to save the image with all elements
-            function saveImage() {
-                html2canvas(document.getElementById('imageContainer')).then(function(canvas) {
+            function saveImage() {{
+                html2canvas(document.getElementById('imageContainer')).then(function(canvas) {{
                     var dataURL = canvas.toDataURL('image/png');
                     var link = document.createElement('a');
                     link.href = dataURL;
                     link.download = 'final_image.png';
                     link.click();
-                });
-            }
+                }});
+            }}
         </script>
     """, height=img_height + 300)
 
