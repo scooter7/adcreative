@@ -103,7 +103,7 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
 
     return img.convert("RGB")
 
-def add_draggable_functionality(img_base64, img_with_text, call_to_action_text, description_text, logo_base64, img_width, img_height, text_colors, bg_colors):
+def add_draggable_functionality(img_base64, img_with_text, call_to_action_text, description_text, logo_base64, img_width, img_height, text_colors, bg_colors, font_size_cta, font_size_desc):
     st.components.v1.html(f"""
         <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
             <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; background-color:{bg_colors[0]}; color:{text_colors[0]}; padding: 5px;">
@@ -200,12 +200,12 @@ def add_draggable_functionality(img_base64, img_with_text, call_to_action_text, 
         </script>
     """, height=img_height + 100)
 
-def download_images(images_with_text, call_to_action_text, description_text, logo_base64, text_colors, bg_colors):
+def download_images(images_with_text, call_to_action_text, description_text, logo_base64, text_colors, bg_colors, font_size_cta, font_size_desc):
     for idx, (image, img_base64) in enumerate(images_with_text):
         st.image(image, caption=f"Image {idx + 1}", use_column_width=False)
 
         # Add draggable functionality with saving option
-        add_draggable_functionality(img_base64, image, call_to_action_text, description_text, logo_base64, image.size[0], image.size[1], text_colors, bg_colors)
+        add_draggable_functionality(img_base64, image, call_to_action_text, description_text, logo_base64, image.size[0], image.size[1], text_colors, bg_colors, font_size_cta, font_size_desc)
 
 def main():
     st.title("Image Text and Logo Overlay App")
