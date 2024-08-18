@@ -128,7 +128,7 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
-            // Draggable and resizable elements setup
+            // Apply dragging and resizing to all elements with the class 'draggable'
             interact('.draggable').draggable({
                 inertia: true,
                 modifiers: [
@@ -180,11 +180,13 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
 
+                // Apply dynamic font resizing to all text elements
                 if (target.id === 'ctaText' || target.id === 'descText') {
                     let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
                     target.style.fontSize = newFontSize + 'px';
                 }
 
+                // Ensure the logo image resizes within its container
                 if (target.id === 'logoImage') {
                     let img = target.querySelector('img');
                     img.style.width = '100%';
@@ -192,7 +194,7 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 }
             }
 
-            // Save Image Function with Debugging
+            // Save Image Function
             function saveImage() {
                 console.log("Merge and Download button clicked");
                 html2canvas(document.getElementById('imageContainer')).then(function(canvas) {
