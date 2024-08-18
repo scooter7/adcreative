@@ -158,7 +158,7 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                     ],
                     onmove: resizeMoveListener
                 }});
-            }
+            }}
 
             function dragMoveListener(event) {{
                 var target = event.target,
