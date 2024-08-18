@@ -1,155 +1,175 @@
-import os
-from PIL import Image
 import streamlit as st
 import base64
+from PIL import Image
 from io import BytesIO
 
-DEFAULT_FONT_PATH = "arial.ttf"
-
-# Function to get the base64 string of an image
-def get_base64_image(image):
+# Helper function to convert image to base64 for embedding in HTML
+def convert_image_to_base64(image):
     buffered = BytesIO()
     image.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode()
 
-# Function to overlay logo on the image
-def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage):
-    img = image.convert("RGBA")
-    logo = Image.open(uploaded_logo).convert("RGBA")
+# Helper function to create draggable and resizable HTML elements
+def create_draggable_resizable_element(id, text, top, left, bg_color, text_color):
+    return f"""
+    <div id="{id}" style="position: absolute; top: {top}px; left: {left}px; cursor: move; background-color:{bg_color}; color:{text_color}; padding: 10px; resize: both; overflow: auto;">
+        {text}
+    </div>
+    """
 
-    logo_width = int(img_width * logo_width_percentage)
-    logo_height = int(img_height * logo_height_percentage)
+# Render HTML with draggable elements
+def render_html(images):
+    html_content = ""
 
-    logo = logo.resize((logo_width, logo_height), Image.ANTIALIAS)
+    for image in images:
+        html_content += f"""
+        <div id="imageContainer" style="position: relative; width: {image['width']}px; height: {image['height']}px; background-image: url('data:image/png;base64,{image['image_base64']}'); background-size: contain; background-repeat: no-repeat;">
+        """
 
-    x, y = get_position_coordinates(logo_position, img_width, img_height, logo_width, logo_height)
+        for i, (cta_text, desc_text) in enumerate(zip(image["cta_texts"], image["desc_texts"])):
+            html_content += create_draggable_resizable_element(
+                id=f"ctaText{i}",
+                text=cta_text,
+                top=50 + i * 100,
+                left=50,
+                bg_color=image['cta_bg_color'],
+                text_color=image['cta_text_color']
+            )
+            html_content += create_draggable_resizable_element(
+                id=f"descText{i}",
+                text=desc_text,
+                top=150 + i * 100,
+                left=50,
+                bg_color=image['desc_bg_color'],
+                text_color=image['desc_text_color']
+            )
 
-    img.paste(logo, (x, y), logo)
-
-    return img.convert("RGB")
-
-# Function to get the coordinates for positioning elements
-def get_position_coordinates(position, img_width, img_height, text_width, text_height):
-    if position == "top-left":
-        x = 10
-        y = 10
-    elif position == "top-center":
-        x = (img_width - text_width) // 2
-        y = 10
-    elif position == "top-right":
-        x = img_width - text_width - 10
-        y = 10
-    elif position == "middle-left":
-        x = 10
-        y = (img_height - text_height) // 2
-    elif position == "middle-center":
-        x = (img_width - text_width) // 2
-        y = (img_height - text_height) // 2
-    elif position == "middle-right":
-        x = img_width - text_width - 10
-        y = (img_height - text_height) // 2
-    elif position == "bottom-left":
-        x = 10
-        y = img_height - text_height - 10
-    elif position == "bottom-center":
-        x = (img_width - text_width) // 2
-        y = img_height - text_height - 10
-    elif position == "bottom-right":
-        x = img_width - text_width - 10
-        y = img_height - text_height - 10
-    return x, y
-
-# Function to generate the HTML content with draggable and resizable elements
-def generate_html(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height):
-    logo_html = f"""
-        <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move; resize: both; overflow: auto;">
-            <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
-        </div>
-    """ if logo_base64 else ""
-
-    html_content = f"""
-        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
-            <div id="ctaText" contenteditable="true" style="position: absolute; top: 50px; left: 50px; cursor: move; padding: 5px; resize: both; overflow: auto; background-color: rgba(0,0,0,0.5); color: white; font-size: 20px;">
-                {call_to_action_text}
+        if image["logo_base64"]:
+            html_content += f"""
+            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move; resize: both; overflow: auto;">
+                <img src="data:image/png;base64,{image['logo_base64']}" style="width: 100px; height: auto;">
             </div>
-            <div id="descText" contenteditable="true" style="position: absolute; top: 150px; left: 50px; cursor: move; padding: 5px; resize: both; overflow: auto; background-color: rgba(0,0,0,0.5); color: white; font-size: 16px;">
-                {description_text}
-            </div>
-            {logo_html}
-        </div>
+            """
 
+        html_content += """
+        </div>
         <button onclick="saveImage()">Save Image</button>
+        <br><br>
+        """
 
-        <script>
-            function dragElement(elmnt) {{
-                var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-                elmnt.onmousedown = function(e) {{
-                    e = e || window.event;
+    # Adding JavaScript for drag-and-drop functionality and saving images
+    html_content += """
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        // Function to enable dragging and resizing of elements
+        function dragElement(elmnt) {
+            var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            elmnt.onmousedown = function(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = function(e) {
                     e.preventDefault();
+                    pos1 = pos3 - e.clientX;
+                    pos2 = pos4 - e.clientY;
                     pos3 = e.clientX;
                     pos4 = e.clientY;
-                    document.onmouseup = closeDragElement;
-                    document.onmousemove = function(e) {{
-                        e.preventDefault();
-                        pos1 = pos3 - e.clientX;
-                        pos2 = pos4 - e.clientY;
-                        pos3 = e.clientX;
-                        pos4 = e.clientY;
-                        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-                        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-                    }};
-                }};
+                    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+                };
+            };
 
-                function closeDragElement() {{
-                    document.onmouseup = null;
-                    document.onmousemove = null;
-                }}
-            }}
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
 
-            function saveImage() {{
-                var container = document.getElementById("imageContainer");
-                html2canvas(container).then(function(canvas) {{
-                    var link = document.createElement("a");
-                    link.href = canvas.toDataURL("image/png");
-                    link.download = "final_image.png";
-                    link.click();
-                }});
-            }}
+        // Function to save the edited image
+        function saveImage() {
+            var imageContainer = document.getElementById("imageContainer");
+            html2canvas(imageContainer).then(canvas => {
+                var link = document.createElement('a');
+                link.href = canvas.toDataURL();
+                link.download = 'final_image.png';
+                link.click();
+            });
+        }
 
-            dragElement(document.getElementById("ctaText"));
-            dragElement(document.getElementById("descText"));
-            { "dragElement(document.getElementById('logoImage'));" if logo_base64 else "" }
-        </script>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+        // Attach dragElement function to all created elements
+        for (var i = 0; i < {len(images[0]["cta_texts"])}; i++) {
+            dragElement(document.getElementById("ctaText" + i));
+            dragElement(document.getElementById("descText" + i));
+        }
+        if (document.getElementById("logoImage")) {
+            dragElement(document.getElementById("logoImage"));
+        }
+    </script>
     """
+
     return html_content
 
+# Main function to handle the Streamlit app logic
 def main():
-    st.title("Interactive Image Editor with Draggable and Resizable Overlays")
+    st.title("Image Text and Logo Overlay App")
 
-    # Image Upload
-    uploaded_images = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
+    # Allow user to upload multiple images and a logo
+    uploaded_images = st.file_uploader("Upload multiple images", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+    uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
+
+    # Display uploaded images
     if uploaded_images:
+        st.write("Images uploaded successfully!")
         for uploaded_image in uploaded_images:
-            image = Image.open(uploaded_image)
-            img_width, img_height = image.size
-            img_base64 = get_base64_image(image)
+            st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
 
-            # Text Inputs
-            call_to_action_text = st.text_input("Enter Call to Action Text", "Sample CTA")
-            description_text = st.text_input("Enter Description Text", "Sample Description")
+    # Display uploaded logo
+    if uploaded_logo:
+        st.write("Logo uploaded successfully!")
+        st.image(uploaded_logo, caption="Uploaded Logo", use_column_width=True)
 
-            # Logo Upload
-            uploaded_logo = st.file_uploader("Upload a logo", type=["png", "jpg", "jpeg"])
+    # Input fields for Call to Action and Description texts
+    num_pairs = st.number_input("Number of Call to Action + Description Pairs", min_value=1, step=1)
+    call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i in range(num_pairs)]
+    description_texts = [st.text_input(f"Description Text {i + 1}") for i in range(num_pairs)]
+
+    # Color pickers for text and background colors
+    call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
+    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
+    description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
+    description_bg_color = st.color_picker("Description Background Color", "#000000")
+
+    # Button to create and download images with overlays
+    if uploaded_images and st.button("Create and Download"):
+        images_with_html = []
+
+        for image in uploaded_images:
+            img = Image.open(image)
+            img_width, img_height = img.size
+            img_base64 = convert_image_to_base64(img)
+
             logo_base64 = None
             if uploaded_logo:
-                logo_image = Image.open(uploaded_logo)
-                logo_base64 = get_base64_image(logo_image)
+                logo = Image.open(uploaded_logo)
+                logo_base64 = convert_image_to_base64(logo)
 
-            # Generate and display the interactive HTML
-            html_content = generate_html(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height)
-            st.components.v1.html(html_content, height=img_height + 150)
+            images_with_html.append({
+                "image_base64": img_base64,
+                "logo_base64": logo_base64,
+                "width": img_width,
+                "height": img_height,
+                "cta_texts": call_to_action_texts,
+                "desc_texts": description_texts,
+                "cta_text_color": call_to_action_text_color,
+                "cta_bg_color": call_to_action_bg_color,
+                "desc_text_color": description_text_color,
+                "desc_bg_color": description_bg_color
+            })
+
+        # Render and display HTML with draggable elements
+        st.components.v1.html(render_html(images_with_html), height=1000)
 
 if __name__ == "__main__":
     main()
