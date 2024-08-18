@@ -110,15 +110,15 @@ def main():
 
 def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height, cta_text_color, cta_bg_color, desc_text_color, desc_bg_color):
     st.components.v1.html(f"""
-        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
-            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; resize: both; overflow: auto; min-width: 50px; min-height: 30px;">
+        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: cover; background-repeat: no-repeat;">
+            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; resize: both; overflow: auto; min-width: 50px; min-height: 30px; width: auto; height: auto;">
                 {call_to_action_text}
             </div>
-            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px; resize: both; overflow: auto; min-width: 50px; min-height: 30px;">
+            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px; resize: both; overflow: auto; min-width: 50px; min-height: 30px; width: auto; height: auto;">
                 {description_text}
             </div>
-            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move; resize: both; overflow: auto; min-width: 50px; min-height: 30px;">
-                <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
+            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move; resize: both; overflow: auto; min-width: 50px; min-height: 30px; width: auto; height: auto;">
+                <img src="data:image/png;base64,{logo_base64}" style="width: auto; height: auto;">
             </div>
         </div>
 
@@ -160,6 +160,7 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 }});
             }}
 
+            // Enable dragging
             dragElement(document.getElementById("ctaText"));
             dragElement(document.getElementById("descText"));
             dragElement(document.getElementById("logoImage"));
