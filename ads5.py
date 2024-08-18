@@ -121,13 +121,14 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 <img src="data:image/png;base64,{logo_base64}" style="width: 100%; height: auto;">
             </div>
         </div>
-        <button onclick="saveImage()">Save Image</button>
+        <button onclick="saveImage()">Merge and Download</button>
     """
 
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
+            // Draggable and resizable elements setup
             interact('.draggable').draggable({
                 inertia: true,
                 modifiers: [
@@ -191,13 +192,20 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 }
             }
 
+            // Save Image Function with Debugging
             function saveImage() {
+                console.log("Merge and Download button clicked");
                 html2canvas(document.getElementById('imageContainer')).then(function(canvas) {
+                    console.log("Canvas generated, preparing download...");
                     var dataURL = canvas.toDataURL('image/png');
                     var link = document.createElement('a');
                     link.href = dataURL;
                     link.download = 'final_image.png';
+                    console.log("Triggering download...");
                     link.click();
+                    console.log("Download triggered.");
+                }).catch(function(error) {
+                    console.error("Error capturing the image: ", error);
                 });
             }
         </script>
