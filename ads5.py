@@ -110,45 +110,49 @@ def main():
 
 def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height, cta_text_color, cta_bg_color, desc_text_color, desc_bg_color):
     st.components.v1.html(f"""
-        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: cover; background-repeat: no-repeat;">
-            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; resize: both; overflow: auto; min-width: 50px; min-height: 30px; width: auto; height: auto;">
+        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
+            <div id="ctaText" style="position: absolute; top: 50px; left: 50px; cursor: move; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; min-width: 50px; min-height: 30px;">
                 {call_to_action_text}
             </div>
-            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px; resize: both; overflow: auto; min-width: 50px; min-height: 30px; width: auto; height: auto;">
+            <div id="descText" style="position: absolute; top: 150px; left: 50px; cursor: move; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px; min-width: 50px; min-height: 30px;">
                 {description_text}
             </div>
-            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move; resize: both; overflow: auto; min-width: 50px; min-height: 30px; width: auto; height: auto;">
+            <div id="logoImage" style="position: absolute; top: 250px; left: 50px; cursor: move; min-width: 50px; min-height: 30px;">
                 <img src="data:image/png;base64,{logo_base64}" style="width: auto; height: auto;">
             </div>
         </div>
 
         <button onclick="saveImage()">Save Image</button>
 
+        <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
         <script>
-            function dragElement(elmnt) {{
-                var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-                elmnt.onmousedown = function(e) {{
-                    e = e || window.event;
-                    e.preventDefault();
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    document.onmouseup = closeDragElement;
-                    document.onmousemove = function(e) {{
-                        e.preventDefault();
-                        pos1 = pos3 - e.clientX;
-                        pos2 = pos4 - e.clientY;
-                        pos3 = e.clientX;
-                        pos4 = e.clientY;
-                        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-                        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-                    }};
-                }};
+            // Make elements draggable and resizable
+            interact('.draggable')
+                .draggable({
+                    onmove: function (event) {{
+                        var target = event.target,
+                            x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+                            y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-                function closeDragElement() {{
-                    document.onmouseup = null;
-                    document.onmousemove = null;
-                }}
-            }}
+                        target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+                        target.setAttribute('data-x', x);
+                        target.setAttribute('data-y', y);
+                    }}
+                })
+                .resizable({
+                    edges: {{ left: true, right: true, bottom: true, top: true }},
+                    onmove: function (event) {{
+                        var target = event.target,
+                            x = (parseFloat(target.getAttribute('data-x')) || 0),
+                            y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+                        target.style.width = event.rect.width + 'px';
+                        target.style.height = event.rect.height + 'px';
+
+                        target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+                    }}
+                });
 
             function saveImage() {{
                 html2canvas(document.getElementById('imageContainer')).then(function(canvas) {{
@@ -160,12 +164,11 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 }});
             }}
 
-            // Enable dragging
-            dragElement(document.getElementById("ctaText"));
-            dragElement(document.getElementById("descText"));
-            dragElement(document.getElementById("logoImage"));
+            interact('#ctaText').draggable({{ inertia: true }}).resizable({{ edges: {{ left: true, right: true, bottom: true, top: true }} }});
+            interact('#descText').draggable({{ inertia: true }}).resizable({{ edges: {{ left: true, right: true, bottom: true, top: true }} }});
+            interact('#logoImage').draggable({{ inertia: true }}).resizable({{ edges: {{ left: true, right: true, bottom: true, top: true }} }});
         </script>
-    """, height=img_height + 150)
+    """, height=img_height + 200)
 
 if __name__ == "__main__":
     main()
