@@ -110,50 +110,77 @@ def main():
 
 def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height, cta_text_color, cta_bg_color, desc_text_color, desc_bg_color):
     st.components.v1.html(f"""
-        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
-            <div id="ctaText" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; cursor: move; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; min-width: 50px; min-height: 30px;">
+        <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat; border: 1px solid #ccc;">
+            <div id="ctaText" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px;">
                 {call_to_action_text}
             </div>
-            <div id="descText" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; cursor: move; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px; min-width: 50px; min-height: 30px;">
+            <div id="descText" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{desc_bg_color}; color:{desc_text_color}; padding: 5px;">
                 {description_text}
             </div>
-            <div id="logoImage" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; cursor: move; min-width: 50px; min-height: 30px;">
+            <div id="logoImage" class="draggable resizable" style="position: absolute; top: 250px; left: 50px;">
                 <img src="data:image/png;base64,{logo_base64}" style="width: auto; height: auto;">
             </div>
         </div>
 
-        <button onclick="saveImage()">Save Image</button>
+        <button onclick="saveImage()" style="margin-top: 20px;">Save Image</button>
 
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
+            // Make elements draggable and resizable
             interact('.draggable')
                 .draggable({{
-                    onmove: function (event) {{
-                        var target = event.target,
-                            x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-                            y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-
-                        target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
-
-                        target.setAttribute('data-x', x);
-                        target.setAttribute('data-y', y);
-                    }}
+                    inertia: true,
+                    modifiers: [
+                        interact.modifiers.restrictRect({{ restriction: 'parent', endOnly: true }})
+                    ],
+                    autoScroll: true,
+                    onmove: dragMoveListener
                 }})
                 .resizable({{
                     edges: {{ left: true, right: true, bottom: true, top: true }},
-                    onmove: function (event) {{
-                        var target = event.target,
-                            x = (parseFloat(target.getAttribute('data-x')) || 0),
-                            y = (parseFloat(target.getAttribute('data-y')) || 0);
-
-                        target.style.width = event.rect.width + 'px';
-                        target.style.height = event.rect.height + 'px';
-
-                        target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-                    }}
+                    inertia: true,
+                    modifiers: [
+                        interact.modifiers.restrictEdges({{ outer: 'parent' }}),
+                        interact.modifiers.restrictSize({{ min: {{ width: 50, height: 20 }} }})
+                    ],
+                    onmove: resizeMoveListener
                 }});
 
-            function saveImage() {{
+            function dragMoveListener(event) {{
+                var target = event.target;
+                // keep the dragged position in the data-x/data-y attributes
+                var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                // translate the element
+                target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+                // update the position attributes
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+            }}
+
+            function resizeMoveListener(event) {{
+                var target = event.target,
+                    x = (parseFloat(target.getAttribute('data-x')) || 0),
+                    y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+                // update the element's style
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
+
+                // translate when resizing from top or left edges
+                x += event.deltaRect.left;
+                y += event.deltaRect.top;
+
+                target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+            }}
+
+            window.saveImage = function() {{
                 html2canvas(document.getElementById('imageContainer')).then(function(canvas) {{
                     var dataURL = canvas.toDataURL('image/png');
                     var link = document.createElement('a');
@@ -161,9 +188,9 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                     link.download = 'final_image.png';
                     link.click();
                 }});
-            }}
+            }};
         </script>
-    """, height=img_height + 200)
+    """, height=img_height + 300)
 
 if __name__ == "__main__":
     main()
