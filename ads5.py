@@ -50,7 +50,11 @@ def merge_text_with_image(image, call_to_action_text, description_text, width_pe
     if uploaded_logo:
         img = overlay_logo(img, uploaded_logo, logo_position, img_width, img_height, logo_width_percentage, logo_height_percentage)
 
-    return img
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+    return img_base64, img
 
 def get_position_coordinates(position, img_width, img_height, text_width, text_height):
     if position == "top-left":
@@ -97,38 +101,53 @@ def overlay_logo(image, uploaded_logo, logo_position, img_width, img_height, log
 
     return img.convert("RGB")
 
-def add_draggable_functionality(img_base64, img_width, img_height):
-    # Function to enable draggable elements on the image
+def add_draggable_functionality(img_base64, img_width, img_height, cta_text, desc_text, logo_base64, cta_pos, desc_pos, logo_pos):
     st.components.v1.html(f"""
         <div id="image-container" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: cover;">
+            <div id="ctaText" style="position: absolute; top: {cta_pos[1]}px; left: {cta_pos[0]}px; cursor: move; padding: 5px; background-color: rgba(0, 0, 0, 0.5); color: white;">{cta_text}</div>
+            <div id="descText" style="position: absolute; top: {desc_pos[1]}px; left: {desc_pos[0]}px; cursor: move; padding: 5px; background-color: rgba(0, 0, 0, 0.5); color: white;">{desc_text}</div>
+            <div id="logoImage" style="position: absolute; top: {logo_pos[1]}px; left: {logo_pos[0]}px; cursor: move;">
+                <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: auto;">
+            </div>
         </div>
 
         <script>
-            var container = document.getElementById('image-container');
-            var isDragging = false;
-            var currentElement;
+            function dragElement(elmnt) {{
+                var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                elmnt.onmousedown = function(e) {{
+                    e = e || window.event;
+                    e.preventDefault();
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    document.onmouseup = closeDragElement;
+                    document.onmousemove = function(e) {{
+                        e.preventDefault();
+                        pos1 = pos3 - e.clientX;
+                        pos2 = pos4 - e.clientY;
+                        pos3 = e.clientX;
+                        pos4 = e.clientY;
+                        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+                    }};
+                }};
 
-            container.addEventListener('mousedown', function(e) {{
-                if (e.target !== container) {{
-                    isDragging = true;
-                    currentElement = e.target;
-                    offsetX = e.clientX - currentElement.getBoundingClientRect().left;
-                    offsetY = e.clientY - currentElement.getBoundingClientRect().top;
+                function closeDragElement() {{
+                    document.onmouseup = null;
+                    document.onmousemove = null;
                 }}
-            }});
+            }}
 
-            document.addEventListener('mousemove', function(e) {{
-                if (isDragging) {{
-                    currentElement.style.left = (e.clientX - offsetX) + 'px';
-                    currentElement.style.top = (e.clientY - offsetY) + 'px';
-                }}
-            }});
-
-            document.addEventListener('mouseup', function() {{
-                isDragging = false;
-            }});
+            dragElement(document.getElementById("ctaText"));
+            dragElement(document.getElementById("descText"));
+            dragElement(document.getElementById("logoImage"));
         </script>
     """, height=img_height + 50)
+
+def download_image(image, img_str):
+    st.image(image, caption="Final Image with Overlays", use_column_width=False)
+
+    href = f'<a href="data:file/png;base64,{img_str}" download="image_with_overlays.png">Download Image</a>'
+    st.markdown(href, unsafe_allow_html=True)
 
 def main():
     st.title("Image Text and Logo Overlay App")
@@ -163,7 +182,7 @@ def main():
             logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
             logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
 
-            img_with_overlays = merge_text_with_image(
+            img_base64, img_with_overlays = merge_text_with_image(
                 img,
                 call_to_action_text,
                 description_text,
@@ -171,22 +190,22 @@ def main():
                 [height_percentage_cta, height_percentage_desc],
                 [call_to_action_text_color, description_text_color],
                 [call_to_action_bg_color, description_bg_color],
-                "top-left",  # You can customize this with user input as well
-                "bottom-right",  # You can customize this with user input as well
-                "middle-center",  # You can customize this with user input as well
+                "top-left",  # Example positions, you can adjust with user inputs
+                "bottom-right",
+                "middle-center",
                 logo_width_percentage,
                 logo_height_percentage,
                 uploaded_logo
             )
 
-            buffered = BytesIO()
-            img_with_overlays.save(buffered, format="PNG")
-            img_str = base64.b64encode(buffered.getvalue()).decode()
-
             # Adding draggable functionality
-            add_draggable_functionality(img_str, img_with_overlays.width, img_with_overlays.height)
+            cta_pos = get_position_coordinates("top-left", img_with_overlays.width, img_with_overlays.height, 0, 0)
+            desc_pos = get_position_coordinates("bottom-right", img_with_overlays.width, img_with_overlays.height, 0, 0)
+            logo_pos = get_position_coordinates("middle-center", img_with_overlays.width, img_with_overlays.height, 0, 0)
 
-            st.markdown(f'<a href="data:file/png;base64,{img_str}" download="image_with_overlays.png">Download Image</a>', unsafe_allow_html=True)
+            add_draggable_functionality(img_base64, img_with_overlays.width, img_with_overlays.height, call_to_action_text, description_text, logo_base64, cta_pos, desc_pos, logo_pos)
+
+            download_image(img_with_overlays, img_base64)
 
 if __name__ == "__main__":
     main()
