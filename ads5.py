@@ -117,6 +117,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
         desc_id = f"descText_{index}"
         logo_id = f"logoImage_{index}"
 
+        # Generate HTML for each image
         html_part = f"""
             <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
                 <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 5px; min-width: 50px; min-height: 30px; font-size: 16px;">
@@ -132,8 +133,10 @@ def add_draggable_functionality(images_data, img_width, img_height):
         """
         html_parts.append(html_part)
 
+    # Combine all HTML parts into a single string
     html_content = "\n".join(html_parts)
 
+    # Generate JavaScript for each image
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
@@ -235,7 +238,35 @@ def add_draggable_functionality(images_data, img_width, img_height):
         </script>
     """
 
+    # Combine HTML and JS into the final component
     st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
+
+# Example usage:
+images_data = [
+    {
+        'img_base64': 'base64string1',
+        'call_to_action_text': 'CTA Text 1',
+        'description_text': 'Description 1',
+        'logo_base64': 'logoBase64String1',
+        'cta_bg_color': '#ff0000',
+        'cta_text_color': '#ffffff',
+        'desc_bg_color': '#00ff00',
+        'desc_text_color': '#000000'
+    },
+    {
+        'img_base64': 'base64string2',
+        'call_to_action_text': 'CTA Text 2',
+        'description_text': 'Description 2',
+        'logo_base64': 'logoBase64String2',
+        'cta_bg_color': '#0000ff',
+        'cta_text_color': '#ffffff',
+        'desc_bg_color': '#ffff00',
+        'desc_text_color': '#000000'
+    },
+    # Add more image data as needed...
+]
+
+add_draggable_functionality(images_data, img_width=800, img_height=600)
 
 if __name__ == "__main__":
     main()
