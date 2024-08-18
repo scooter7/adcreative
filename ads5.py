@@ -109,7 +109,7 @@ def main():
                                         )
 
 def add_draggable_functionality(img_base64, call_to_action_text, description_text, logo_base64, img_width, img_height, cta_text_color, cta_bg_color, desc_text_color, desc_bg_color):
-    st.components.v1.html(f"""
+    html_part_1 = f"""
         <div id="imageContainer" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{img_base64}'); background-size: contain; background-repeat: no-repeat;">
             <div id="ctaText" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{cta_bg_color}; color:{cta_text_color}; padding: 5px; min-width: 50px; min-height: 30px;">
                 {call_to_action_text}
@@ -121,13 +121,13 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 <img src="data:image/png;base64,{logo_base64}" style="width: 100%; height: auto;">
             </div>
         </div>
-
         <button onclick="saveImage()">Save Image</button>
+    """
 
+    js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
-            // Make elements draggable and resizable using Interact.js
             interact('.draggable').draggable({
                 inertia: true,
                 modifiers: [
@@ -152,7 +152,6 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 onmove: resizeMoveListener
             });
 
-            // Function to handle dragging
             function dragMoveListener(event) {
                 var target = event.target,
                     x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
@@ -164,7 +163,6 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 target.setAttribute('data-y', y);
             }
 
-            // Function to handle resizing
             function resizeMoveListener(event) {
                 var target = event.target,
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
@@ -173,7 +171,6 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 target.style.width = event.rect.width + 'px';
                 target.style.height = event.rect.height + 'px';
 
-                // translate when resizing from top or left edges
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
 
@@ -182,13 +179,11 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
 
-                // Adjust font size dynamically for text elements
                 if (target.id === 'ctaText' || target.id === 'descText') {
-                    let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;  // Adjust ratio as needed
+                    let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
                     target.style.fontSize = newFontSize + 'px';
                 }
 
-                // For logo, resize image within the container
                 if (target.id === 'logoImage') {
                     let img = target.querySelector('img');
                     img.style.width = '100%';
@@ -196,7 +191,6 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                 }
             }
 
-            // Save Image Function
             function saveImage() {
                 html2canvas(document.getElementById('imageContainer')).then(function(canvas) {
                     var dataURL = canvas.toDataURL('image/png');
@@ -206,9 +200,10 @@ def add_draggable_functionality(img_base64, call_to_action_text, description_tex
                     link.click();
                 });
             }
-
         </script>
-    """, height=img_height + 300)
+    """
+
+    st.components.v1.html(html_part_1 + js_part, height=img_height + 300)
 
 if __name__ == "__main__":
     main()
