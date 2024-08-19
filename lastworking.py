@@ -39,13 +39,15 @@ def main():
     selected_cta_positions = st.multiselect("Select Call to Action Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
     selected_desc_positions = st.multiselect("Select Description Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
+    # Adding transparency sliders to the color pickers
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
-    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
+    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000") + str(hex(int(st.slider("Call to Action Background Transparency", 0, 100, 100)/100*255)))[2:].zfill(2)
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
-    description_bg_color = st.color_picker("Description Background Color", "#000000")
+    description_bg_color = st.color_picker("Description Background Color", "#000000") + str(hex(int(st.slider("Description Background Transparency", 0, 100, 100)/100*255)))[2:].zfill(2)
 
     logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
     logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
+    logo_transparency = st.slider("Logo Transparency (0-100)", 0, 100, 100) / 100.0  # Adding transparency slider for logo
     selected_logo_positions = st.multiselect("Select Logo Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
     image_sizes = {
@@ -105,7 +107,8 @@ def main():
                                             'cta_bg_color': call_to_action_bg_color,
                                             'cta_text_color': call_to_action_text_color,
                                             'desc_bg_color': description_bg_color,
-                                            'desc_text_color': description_text_color
+                                            'desc_text_color': description_text_color,
+                                            'logo_transparency': logo_transparency
                                         })
 
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
@@ -128,7 +131,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
                     {data['description_text']}
                 </div>
-                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; display: inline-block;">
+                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; display: inline-block; opacity: {data['logo_transparency']};">
                     <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto;">
                 </div>
             </div>
