@@ -8,9 +8,7 @@ from PIL import Image
 def main():
     st.title("Image Text and Logo Overlay App")
 
-    uploaded_images = st.file_uploader(
-        "Upload multiple images", type=["jpg", "jpeg", "png"], accept_multiple_files=True
-    )
+    uploaded_images = st.file_uploader("Upload multiple images", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
     uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
 
     logo_base64 = None
@@ -33,43 +31,22 @@ def main():
     call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i in range(num_pairs)]
     description_texts = [st.text_input(f"Description Text {i + 1}") for i in range(num_pairs)]
 
-    width_percentage_cta = st.slider(
-        "Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1
-    ) / 100.0
-    height_percentage_cta = st.slider(
-        "Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1
-    ) / 100.0
-    width_percentage_desc = st.slider(
-        "Description Width (Percentage of Image Width)", 1, 100, 50, step=1
-    ) / 100.0
-    height_percentage_desc = st.slider(
-        "Description Height (Percentage of Image Height)", 1, 100, 10, step=1
-    ) / 100.0
+    width_percentage_cta = st.slider("Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
+    height_percentage_cta = st.slider("Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
+    width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
+    height_percentage_desc = st.slider("Description Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
 
-    selected_cta_positions = st.multiselect(
-        "Select Call to Action Text Positions",
-        ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"],
-    )
-    selected_desc_positions = st.multiselect(
-        "Select Description Text Positions",
-        ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"],
-    )
+    selected_cta_positions = st.multiselect("Select Call to Action Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
+    selected_desc_positions = st.multiselect("Select Description Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
     call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
     description_bg_color = st.color_picker("Description Background Color", "#000000")
 
-    logo_width_percentage = st.slider(
-        "Logo Width (Percentage of Image Width)", 1, 100, 20, step=1
-    ) / 100.0
-    logo_height_percentage = st.slider(
-        "Logo Height (Percentage of Image Height)", 1, 100, 20, step=1
-    ) / 100.0
-    selected_logo_positions = st.multiselect(
-        "Select Logo Positions",
-        ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"],
-    )
+    logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
+    logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
+    selected_logo_positions = st.multiselect("Select Logo Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
     image_sizes = {
         "IP Targeting": {
@@ -133,10 +110,9 @@ def main():
 
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
 
-
 def add_draggable_functionality(images_data, img_width, img_height):
     html_parts = []
-
+    
     # Iterate over each image and its associated data
     for index, data in enumerate(images_data):
         cta_id = f"ctaText_{index}"
@@ -146,10 +122,10 @@ def add_draggable_functionality(images_data, img_width, img_height):
         # Generate HTML for each image
         html_part = f"""
             <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
-                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 2px; font-size: 16px; display: inline-block;">
+                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
                     {data['call_to_action_text']}
                 </div>
-                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 2px; font-size: 16px; display: inline-block;">
+                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
                     {data['description_text']}
                 </div>
                 <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; display: inline-block;">
@@ -209,21 +185,17 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Maintain a consistent 2-pixel padding around the text
-                const padding = 2;
+                // Ensure the background fits tightly around the text with padding
+                target.style.width = 'auto';
+                target.style.height = 'auto';
+                target.style.whiteSpace = 'nowrap';
 
-                // Ensure the background fits tightly around the text with a consistent 2-pixel border
-                target.style.width = (event.rect.width - padding * 2) + 'px';
-                target.style.height = (event.rect.height - padding * 2) + 'px';
+                // Calculate and set the new font size based on the container size
+                let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
+                target.style.fontSize = newFontSize + 'px';
 
-                // Calculate and set the new font size based on the container size for text elements
-                if (!target.id.includes('logoImage')) {
-                    let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
-                    target.style.fontSize = newFontSize + 'px';
-                }
-
-                // Apply consistent 2-pixel padding around the text
-                target.style.padding = padding + 'px';
+                // Keep the padding consistent around the text and logo
+                target.style.padding = '5px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
@@ -236,7 +208,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 // Handle resizing for logos
                 if (target.id.includes('logoImage')) {
                     let img = target.querySelector('img');
-                    img.style.width = '100%';
+                    img.style.width = target.clientWidth + 'px';
                     img.style.height = 'auto';
                 }
             }
@@ -275,7 +247,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
     # Combine HTML and JS into the final component
     st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
-
 
 if __name__ == "__main__":
     main()
