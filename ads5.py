@@ -122,13 +122,13 @@ def add_draggable_functionality(images_data, img_width, img_height):
         # Generate HTML for each image
         html_part = f"""
             <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
-                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 2px; min-width: 50px; min-height: 30px; font-size: 16px;">
+                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 2px; box-sizing: content-box; min-width: 50px; min-height: 30px; font-size: 16px;">
                     {data['call_to_action_text']}
                 </div>
-                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 2px; min-width: 50px; min-height: 30px; font-size: 16px;">
+                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 2px; box-sizing: content-box; min-width: 50px; min-height: 30px; font-size: 16px;">
                     {data['description_text']}
                 </div>
-                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; min-width: 50px; min-height: 30px;">
+                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; cursor: move; min-width: 50px; min-height: 50px;">
                     <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto; max-width: 100%; max-height: 100%;">
                 </div>
             </div>
@@ -162,7 +162,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                             outer: 'parent'
                         }),
                         interact.modifiers.restrictSize({
-                            min: { width: 50, height: 20 } // Ensuring the logo can be resized smaller
+                            min: { width: 50, height: 20 } // Ensuring the logo and text can be resized smaller
                         })
                     ],
                     onmove: resizeMoveListener
@@ -185,10 +185,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Set the width and height based on the resize
-                target.style.width = event.rect.width + 'px';
-                target.style.height = event.rect.height + 'px';
-
                 // Adjust position after resizing
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
@@ -202,8 +198,10 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
                     target.style.fontSize = newFontSize + 'px';
 
-                    // Keep the padding consistent around the text elements
+                    // Maintain consistent padding and background around text
                     target.style.padding = '2px';
+                    target.style.width = 'auto';  // Ensure the text container width adjusts to the text size
+                    target.style.height = 'auto'; // Ensure the text container height adjusts to the text size
                 }
 
                 // Adjust size for the logo image
