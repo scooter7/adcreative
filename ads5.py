@@ -225,19 +225,26 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     console.error("Error capturing the image " + index + ": ", error);
                 });
             }
-        </script>
-    """
 
-    # Add a Save & Download button for each image
+            // Apply interactions to each element with unique IDs
+    """
     for index in range(len(images_data)):
         js_part += f"""
-            <button onclick="saveImage({index})">Save and Download Image {index + 1}</button>
+            applyInteractions('ctaText_{index}');
+            applyInteractions('descText_{index}');
+            applyInteractions('logoImage_{index}');
         """
 
     js_part += "</script>"
 
     # Combine HTML and JS into the final component
     st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
+
+    if st.button("Save and Download All Images"):
+        st.write("Saving images...")
+        for i in range(len(images_data)):
+            js_code = f'<script>saveImage({i});</script>'
+            st.components.v1.html(js_code, height=0)
 
 if __name__ == "__main__":
     main()
