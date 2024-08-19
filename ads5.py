@@ -181,38 +181,39 @@ def add_draggable_functionality(images_data, img_width, img_height):
             }
 
             function resizeMoveListener(event) {
-                var target = event.target,
-                    x = (parseFloat(target.getAttribute('data-x')) || 0),
-                    y = (parseFloat(target.getAttribute('data-y')) || 0);
+    var target = event.target,
+        x = (parseFloat(target.getAttribute('data-x')) || 0),
+        y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Apply consistent padding to all sides
-                target.style.padding = '5px';
+    // Maintain consistent padding of 2px around the text
+    var padding = 2;
+    var paddingAdjustWidth = padding * 2; // To account for padding on both sides
+    var paddingAdjustHeight = padding * 2; // To account for padding on both top and bottom
 
-                // Set the width and height based on the resize
-                target.style.width = event.rect.width + 'px';
-                target.style.height = event.rect.height + 'px';
+    target.style.width = (event.rect.width - paddingAdjustWidth) + 'px';
+    target.style.height = (event.rect.height - paddingAdjustHeight) + 'px';
 
-                // Adjust position after resizing
-                x += event.deltaRect.left;
-                y += event.deltaRect.top;
+    x += event.deltaRect.left;
+    y += event.deltaRect.top;
 
-                target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
+    target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+    target.style.padding = padding + 'px'; // Set consistent padding
 
-                // Adjust font size for text elements
-                if (target.id.includes('ctaText') || target.id.includes('descText')) {
-                    let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
-                    target.style.fontSize = newFontSize + 'px';
-                }
+    target.setAttribute('data-x', x);
+    target.setAttribute('data-y', y);
 
-                // Adjust size for the logo image
-                if (target.id.includes('logoImage')) {
-                    let img = target.querySelector('img');
-                    img.style.width = '100%';
-                    img.style.height = 'auto';
-                }
-            }
+    if (target.id.includes('ctaText') || target.id.includes('descText')) {
+        let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
+        target.style.fontSize = newFontSize + 'px';
+    }
+
+    if (target.id.includes('logoImage')) {
+        let img = target.querySelector('img');
+        img.style.width = '100%';
+        img.style.height = 'auto';
+    }
+}
+
 
             function saveImage() {
                 console.log("Merge and Download button clicked");
