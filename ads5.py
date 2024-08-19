@@ -39,10 +39,11 @@ def main():
     selected_cta_positions = st.multiselect("Select Call to Action Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
     selected_desc_positions = st.multiselect("Select Description Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
+    # Updated color pickers with transparency options
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
-    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
+    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000") + str(int(st.slider("Call to Action Background Transparency", 0, 100, 100)/100*255)).zfill(2)
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
-    description_bg_color = st.color_picker("Description Background Color", "#000000")
+    description_bg_color = st.color_picker("Description Background Color", "#000000") + str(int(st.slider("Description Background Transparency", 0, 100, 100)/100*255)).zfill(2)
 
     logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
     logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
