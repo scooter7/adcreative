@@ -201,11 +201,14 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
                 // Adjust font size for text elements and ensure consistent padding
                 if (target.id.includes('ctaText') || target.id.includes('descText')) {
-                    let newFontSize = Math.min(event.rect.width - 4, event.rect.height - 4) / 5;
-                    target.style.fontSize = newFontSize + 'px';
+                    const padding = 2;  // consistent padding in pixels
+                    const adjustedWidth = event.rect.width - 2 * padding;
+                    const adjustedHeight = event.rect.height - 2 * padding;
+
+                    target.style.fontSize = Math.min(adjustedWidth, adjustedHeight) / 5 + 'px';
 
                     // Maintain consistent padding and adjust container size dynamically
-                    target.style.padding = '2px';
+                    target.style.padding = padding + 'px';
                     target.style.boxSizing = 'border-box'; // Ensure padding is inside the element's border
                 }
             }
