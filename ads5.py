@@ -193,12 +193,23 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
 
+                // Adjust font size for text elements
+                if (target.id.includes('ctaText') || target.id.includes('descText')) {
+                    let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
+                    target.style.fontSize = newFontSize + 'px';
+
+                    // Maintain consistent padding and background around text
+                    target.style.padding = '2px';
+                    target.style.width = 'auto';  // Ensure the text container width adjusts to the text size
+                    target.style.height = 'auto'; // Ensure the text container height adjusts to the text size
+                }
+
                 // Adjust size for the logo image
                 if (target.id.includes('logoImage')) {
                     let img = target.querySelector('img');
                     img.style.width = '100%';
                     img.style.height = '100%';
-                    img.style.objectFit = 'contain';  // Ensure the logo maintains its aspect ratio and fits within the container
+                    img.style.objectFit = 'contain'; // Ensure the logo maintains its aspect ratio within the resized container
                 }
             }
 
