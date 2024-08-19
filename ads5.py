@@ -180,25 +180,25 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 target.setAttribute('data-y', y);
             }
 
-                function resizeMoveListener(event) {
-                    var target = event.target,
-                        x = (parseFloat(target.getAttribute('data-x')) || 0),
-                        y = (parseFloat(target.getAttribute('data-y')) || 0);
+            function resizeMoveListener(event) {
+                var target = event.target,
+                    x = (parseFloat(target.getAttribute('data-x')) || 0),
+                    y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                    // Ensure consistent padding around the text
-                    target.style.padding = '2px';
+                // Ensure consistent padding around the text
+                target.style.padding = '2px';
 
-                    // Adjust font size based on container size
-                    let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
-                    target.style.fontSize = newFontSize + 'px';
+                // Adjust font size based on container size
+                let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
+                target.style.fontSize = newFontSize + 'px';
 
-                    // Handle resizing for logos
-                    if (target.id.includes('logoImage')) {
-                        let img = target.querySelector('img');
-                        img.style.width = '100%';
-                        img.style.height = '100%';
-                    }
+                // Handle resizing for logos
+                if (target.id.includes('logoImage')) {
+                    let img = target.querySelector('img');
+                    img.style.width = '100%';
+                    img.style.height = '100%';
                 }
+            }
 
             function saveImage() {
                 console.log("Merge and Download button clicked");
