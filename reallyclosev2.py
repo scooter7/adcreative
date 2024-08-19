@@ -205,11 +205,11 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
 
-                // Handle resizing for logos
+                // Adjust the logo resizing
                 if (target.id.includes('logoImage')) {
                     let img = target.querySelector('img');
-                    img.style.width = target.clientWidth + 'px';
-                    img.style.height = 'auto';
+                    img.style.width = event.rect.width + 'px';
+                    img.style.height = event.rect.height + 'px';
                 }
             }
 
