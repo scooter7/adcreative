@@ -206,24 +206,22 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
                 // Adjust size for the logo image with consistent behavior
                 if (target.id.includes('logoImage')) {
-                    target.style.width = event.rect.width + 'px';
-                    target.style.height = event.rect.height + 'px';
+                    let img = target.querySelector('img');
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'contain';
                 }
             }
 
             function saveImage() {
-                console.log("Merge and Download button clicked");
                 var images = document.querySelectorAll("[id^='imageContainer_']");
                 images.forEach(function(imageContainer, index) {
                     html2canvas(imageContainer).then(function(canvas) {
-                        console.log("Canvas generated for image " + index + ", preparing download...");
                         var dataURL = canvas.toDataURL('image/png');
                         var link = document.createElement('a');
                         link.href = dataURL;
                         link.download = 'final_image_' + index + '.png';
-                        console.log("Triggering download for image " + index + "...");
                         link.click();
-                        console.log("Download triggered for image " + index + ".");
                     }).catch(function(error) {
                         console.error("Error capturing the image " + index + ": ", error);
                     });
