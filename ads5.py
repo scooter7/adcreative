@@ -129,9 +129,8 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     {data['description_text']}
                 </div>
                 <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; display: inline-block;">
-                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: auto; height: auto;">
+                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto;">
                 </div>
-                <button onclick="saveImage('{index}')">Save and Download</button>
             </div>
         """
         html_parts.append(html_part)
@@ -214,16 +213,22 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 }
             }
 
-            function saveImage(index) {
-                var imageContainer = document.getElementById('imageContainer_' + index);
-                html2canvas(imageContainer, { allowTaint: true, useCORS: true }).then(function(canvas) {
-                    var dataURL = canvas.toDataURL('image/png');
-                    var link = document.createElement('a');
-                    link.href = dataURL;
-                    link.download = 'final_image_' + index + '.png';
-                    link.click();
-                }).catch(function(error) {
-                    console.error("Error capturing the image " + index + ": ", error);
+            function saveImage() {
+                console.log("Merge and Download button clicked");
+                var images = document.querySelectorAll("[id^='imageContainer_']");
+                images.forEach(function(imageContainer, index) {
+                    html2canvas(imageContainer).then(function(canvas) {
+                        console.log("Canvas generated for image " + index + ", preparing download...");
+                        var dataURL = canvas.toDataURL('image/png');
+                        var link = document.createElement('a');
+                        link.href = dataURL;
+                        link.download = 'final_image_' + index + '.png';
+                        console.log("Triggering download for image " + index + "...");
+                        link.click();
+                        console.log("Download triggered for image " + index + ".");
+                    }).catch(function(error) {
+                        console.error("Error capturing the image " + index + ": ", error);
+                    });
                 });
             }
 
@@ -237,6 +242,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
         """
 
     js_part += """
+            saveImage();  // Automatically trigger saveImage after applying interactions
         </script>
     """
 
