@@ -185,19 +185,13 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Maintain consistent padding of 2px around the text
-                var padding = 2;
-                var paddingAdjustWidth = padding * 2; // To account for padding on both sides
-                var paddingAdjustHeight = padding * 2; // To account for padding on both top and bottom
-
-                target.style.width = (event.rect.width - paddingAdjustWidth) + 'px';
-                target.style.height = (event.rect.height - paddingAdjustHeight) + 'px';
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
 
                 target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-                target.style.padding = padding + 'px'; // Set consistent padding
 
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
