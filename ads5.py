@@ -122,10 +122,10 @@ def add_draggable_functionality(images_data, img_width, img_height):
         # Generate HTML for each image
         html_part = f"""
             <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
-                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
+                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 2px; font-size: 16px; display: inline-block;">
                     {data['call_to_action_text']}
                 </div>
-                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
+                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 2px; font-size: 16px; display: inline-block;">
                     {data['description_text']}
                 </div>
                 <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; display: inline-block;">
@@ -185,7 +185,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Ensure the background fits tightly around the text with padding
+                // Adjust the width and height according to the resize
                 target.style.width = event.rect.width + 'px';
                 target.style.height = event.rect.height + 'px';
                 target.style.whiteSpace = 'nowrap';
@@ -194,8 +194,8 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
                 target.style.fontSize = newFontSize + 'px';
 
-                // Keep the padding consistent around the text and logo
-                target.style.padding = '5px';
+                // Ensure consistent padding of 2 pixels around the text
+                target.style.padding = '2px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
