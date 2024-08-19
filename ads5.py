@@ -181,38 +181,38 @@ def add_draggable_functionality(images_data, img_width, img_height):
             }
 
             function resizeMoveListener(event) {
-                var target = event.target,
-                    x = (parseFloat(target.getAttribute('data-x')) || 0),
-                    y = (parseFloat(target.getAttribute('data-y')) || 0);
+    var target = event.target,
+        x = (parseFloat(target.getAttribute('data-x')) || 0),
+        y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Ensure the background fits tightly around the text with padding
-                target.style.width = event.rect.width + 'px';
-                target.style.height = event.rect.height + 'px';
+    // Ensure the background fits tightly around the text with a consistent 2-pixel border
+    target.style.width = event.rect.width + 'px';
+    target.style.height = event.rect.height + 'px';
 
-                // Calculate and set the new font size based on the container size for text elements
-                if (!target.id.includes('logoImage')) {
-                    let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
-                    target.style.fontSize = newFontSize + 'px';
-                }
+    // Calculate and set the new font size based on the container size for text elements
+    if (!target.id.includes('logoImage')) {
+        let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
+        target.style.fontSize = newFontSize + 'px';
+    }
 
-                // Keep the padding consistent around the text and logo
-                target.style.padding = '5px';
+    // Keep a consistent 2-pixel padding around the text
+    target.style.padding = '2px';
 
-                x += event.deltaRect.left;
-                y += event.deltaRect.top;
+    x += event.deltaRect.left;
+    y += event.deltaRect.top;
 
-                target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+    target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
 
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
+    target.setAttribute('data-x', x);
+    target.setAttribute('data-y', y);
 
-                // Handle resizing for logos
-                if (target.id.includes('logoImage')) {
-                    let img = target.querySelector('img');
-                    img.style.width = '100%';
-                    img.style.height = 'auto';
-                }
-            }
+    // Handle resizing for logos
+    if (target.id.includes('logoImage')) {
+        let img = target.querySelector('img');
+        img.style.width = '100%';
+        img.style.height = 'auto';
+    }
+}
 
             function saveImage() {
                 console.log("Merge and Download button clicked");
