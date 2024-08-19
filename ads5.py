@@ -129,7 +129,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     {data['description_text']}
                 </div>
                 <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; cursor: move; min-width: 50px; min-height: 50px;">
-                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto; max-width: 100%; max-height: 100%;">
+                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: 100%; object-fit: contain;">
                 </div>
             </div>
         """
@@ -162,7 +162,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                             outer: 'parent'
                         }),
                         interact.modifiers.restrictSize({
-                            min: { width: 50, height: 20 } // Ensuring the logo and text can be resized smaller
+                            min: { width: 50, height: 50 } // Ensuring the logo can be resized smaller
                         })
                     ],
                     onmove: resizeMoveListener
@@ -193,22 +193,12 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
 
-                // Adjust font size for text elements
-                if (target.id.includes('ctaText') || target.id.includes('descText')) {
-                    let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
-                    target.style.fontSize = newFontSize + 'px';
-
-                    // Maintain consistent padding and background around text
-                    target.style.padding = '2px';
-                    target.style.width = 'auto';  // Ensure the text container width adjusts to the text size
-                    target.style.height = 'auto'; // Ensure the text container height adjusts to the text size
-                }
-
                 // Adjust size for the logo image
                 if (target.id.includes('logoImage')) {
                     let img = target.querySelector('img');
                     img.style.width = '100%';
-                    img.style.height = 'auto';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'contain';  // Ensure the logo maintains its aspect ratio and fits within the container
                 }
             }
 
