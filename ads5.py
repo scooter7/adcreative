@@ -214,18 +214,14 @@ def add_draggable_functionality(images_data, img_width, img_height):
             }
 
             function saveImage() {
-                console.log("Merge and Download button clicked");
                 var images = document.querySelectorAll("[id^='imageContainer_']");
                 images.forEach(function(imageContainer, index) {
-                    html2canvas(imageContainer).then(function(canvas) {
-                        console.log("Canvas generated for image " + index + ", preparing download...");
+                    html2canvas(imageContainer, { allowTaint: true, useCORS: true }).then(function(canvas) {
                         var dataURL = canvas.toDataURL('image/png');
                         var link = document.createElement('a');
                         link.href = dataURL;
                         link.download = 'final_image_' + index + '.png';
-                        console.log("Triggering download for image " + index + "...");
                         link.click();
-                        console.log("Download triggered for image " + index + ".");
                     }).catch(function(error) {
                         console.error("Error capturing the image " + index + ": ", error);
                     });
@@ -243,6 +239,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
     js_part += """
         </script>
+        <button onclick="saveImage()">Save and Download</button>
     """
 
     # Combine HTML and JS into the final component
