@@ -79,7 +79,7 @@ def main():
                 if st.checkbox(label, key=f"{channel}_{label}"):
                     selected_image_sizes.append((channel, label, dimensions))
 
-    if st.button("Merge and Download"):
+    if st.button("Merge and Show Images"):
         if uploaded_images and selected_cta_positions and selected_desc_positions and selected_logo_positions:
             st.write("Processing images...")
 
@@ -213,38 +213,28 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 }
             }
 
-            function saveImage() {
-                console.log("Merge and Download button clicked");
-                var images = document.querySelectorAll("[id^='imageContainer_']");
-                images.forEach(function(imageContainer, index) {
-                    html2canvas(imageContainer).then(function(canvas) {
-                        console.log("Canvas generated for image " + index + ", preparing download...");
-                        var dataURL = canvas.toDataURL('image/png');
-                        var link = document.createElement('a');
-                        link.href = dataURL;
-                        link.download = 'final_image_' + index + '.png';
-                        console.log("Triggering download for image " + index + "...");
-                        link.click();
-                        console.log("Download triggered for image " + index + ".");
-                    }).catch(function(error) {
-                        console.error("Error capturing the image " + index + ": ", error);
-                    });
+            function saveImage(index) {
+                var imageContainer = document.getElementById('imageContainer_' + index);
+                html2canvas(imageContainer).then(function(canvas) {
+                    var dataURL = canvas.toDataURL('image/png');
+                    var link = document.createElement('a');
+                    link.href = dataURL;
+                    link.download = 'final_image_' + index + '.png';
+                    link.click();
+                }).catch(function(error) {
+                    console.error("Error capturing the image " + index + ": ", error);
                 });
             }
-
-            // Apply interactions to each element with unique IDs
-    """
-    for index in range(len(images_data)):
-        js_part += f"""
-            applyInteractions('ctaText_{index}');
-            applyInteractions('descText_{index}');
-            applyInteractions('logoImage_{index}');
-        """
-
-    js_part += """
-            saveImage();  // Automatically trigger saveImage after applying interactions
         </script>
     """
+
+    # Add a Save & Download button for each image
+    for index in range(len(images_data)):
+        js_part += f"""
+            <button onclick="saveImage({index})">Save and Download Image {index + 1}</button>
+        """
+
+    js_part += "</script>"
 
     # Combine HTML and JS into the final component
     st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
