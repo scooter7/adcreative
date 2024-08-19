@@ -131,6 +131,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; display: inline-block;">
                     <img src="data:image/png;base64,{data['logo_base64']}" style="width: auto; height: auto;">
                 </div>
+                <button onclick="saveImage('{index}')">Save and Download</button>
             </div>
         """
         html_parts.append(html_part)
@@ -213,18 +214,16 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 }
             }
 
-            function saveImage() {
-                var images = document.querySelectorAll("[id^='imageContainer_']");
-                images.forEach(function(imageContainer, index) {
-                    html2canvas(imageContainer, { allowTaint: true, useCORS: true }).then(function(canvas) {
-                        var dataURL = canvas.toDataURL('image/png');
-                        var link = document.createElement('a');
-                        link.href = dataURL;
-                        link.download = 'final_image_' + index + '.png';
-                        link.click();
-                    }).catch(function(error) {
-                        console.error("Error capturing the image " + index + ": ", error);
-                    });
+            function saveImage(index) {
+                var imageContainer = document.getElementById('imageContainer_' + index);
+                html2canvas(imageContainer, { allowTaint: true, useCORS: true }).then(function(canvas) {
+                    var dataURL = canvas.toDataURL('image/png');
+                    var link = document.createElement('a');
+                    link.href = dataURL;
+                    link.download = 'final_image_' + index + '.png';
+                    link.click();
+                }).catch(function(error) {
+                    console.error("Error capturing the image " + index + ": ", error);
                 });
             }
 
@@ -239,7 +238,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
     js_part += """
         </script>
-        <button onclick="saveImage()">Save and Download</button>
     """
 
     # Combine HTML and JS into the final component
