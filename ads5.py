@@ -39,7 +39,7 @@ def main():
     selected_cta_positions = st.multiselect("Select Call to Action Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
     selected_desc_positions = st.multiselect("Select Description Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
 
-    # Updated color pickers with transparency options
+    # Adding transparency sliders to the color pickers
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
     call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000") + str(hex(int(st.slider("Call to Action Background Transparency", 0, 100, 100)/100*255)))[2:].zfill(2)
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
@@ -103,9 +103,9 @@ def main():
                                             'call_to_action_text': call_to_action_text,
                                             'description_text': description_text,
                                             'logo_base64': logo_base64 if uploaded_logo else None,
-                                            'cta_bg_color': f"rgba({int(call_to_action_bg_color[1:3], 16)},{int(call_to_action_bg_color[3:5], 16)},{int(call_to_action_bg_color[5:7], 16)},{int(call_to_action_bg_color[7:9], 16) / 255})",
+                                            'cta_bg_color': call_to_action_bg_color,
                                             'cta_text_color': call_to_action_text_color,
-                                            'desc_bg_color': f"rgba({int(description_bg_color[1:3], 16)},{int(description_bg_color[3:5], 16)},{int(description_bg_color[5:7], 16)},{int(description_bg_color[7:9], 16) / 255})",
+                                            'desc_bg_color': description_bg_color,
                                             'desc_text_color': description_text_color
                                         })
 
@@ -142,6 +142,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
     # Generate JavaScript for each image
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
             function applyInteractions(elementId) {
                 interact('#' + elementId).draggable({
@@ -185,9 +186,17 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Resize and reposition the element
-                target.style.width = event.rect.width + 'px';
-                target.style.height = event.rect.height + 'px';
+                // Ensure the background fits tightly around the text with padding
+                target.style.width = 'auto';
+                target.style.height = 'auto';
+                target.style.whiteSpace = 'nowrap';
+
+                // Calculate and set the new font size based on the container size
+                let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
+                target.style.fontSize = newFontSize + 'px';
+
+                // Keep the padding consistent around the text and logo
+                target.style.padding = '5px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
@@ -200,20 +209,26 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 // Adjust the logo resizing
                 if (target.id.includes('logoImage')) {
                     let img = target.querySelector('img');
-                    img.style.width = '100%';
-                    img.style.height = 'auto';
+                    img.style.width = event.rect.width + 'px';
+                    img.style.height = event.rect.height + 'px';
                 }
             }
 
             function saveImage() {
+                console.log("Merge and Download button clicked");
                 var images = document.querySelectorAll("[id^='imageContainer_']");
                 images.forEach(function(imageContainer, index) {
                     html2canvas(imageContainer).then(function(canvas) {
+                        console.log("Canvas generated for image " + index + ", preparing download...");
                         var dataURL = canvas.toDataURL('image/png');
                         var link = document.createElement('a');
                         link.href = dataURL;
                         link.download = 'final_image_' + index + '.png';
+                        console.log("Triggering download for image " + index + "...");
                         link.click();
+                        console.log("Download triggered for image " + index + ".");
+                    }).catch(function(error) {
+                        console.error("Error capturing the image " + index + ": ", error);
                     });
                 });
             }
