@@ -142,7 +142,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
     # Generate JavaScript for each image
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
             function applyInteractions(elementId) {
                 interact('#' + elementId).draggable({
@@ -186,17 +185,9 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Ensure the background fits tightly around the text with padding
-                target.style.width = 'auto';
-                target.style.height = 'auto';
-                target.style.whiteSpace = 'nowrap';
-
-                // Calculate and set the new font size based on the container size
-                let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
-                target.style.fontSize = newFontSize + 'px';
-
-                // Keep the padding consistent around the text and logo
-                target.style.padding = '5px';
+                // Resize and reposition the element
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
@@ -209,26 +200,20 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 // Adjust the logo resizing
                 if (target.id.includes('logoImage')) {
                     let img = target.querySelector('img');
-                    img.style.width = event.rect.width + 'px';
-                    img.style.height = event.rect.height + 'px';
+                    img.style.width = '100%';
+                    img.style.height = 'auto';
                 }
             }
 
             function saveImage() {
-                console.log("Merge and Download button clicked");
                 var images = document.querySelectorAll("[id^='imageContainer_']");
                 images.forEach(function(imageContainer, index) {
                     html2canvas(imageContainer).then(function(canvas) {
-                        console.log("Canvas generated for image " + index + ", preparing download...");
                         var dataURL = canvas.toDataURL('image/png');
                         var link = document.createElement('a');
                         link.href = dataURL;
                         link.download = 'final_image_' + index + '.png';
-                        console.log("Triggering download for image " + index + "...");
                         link.click();
-                        console.log("Download triggered for image " + index + ".");
-                    }).catch(function(error) {
-                        console.error("Error capturing the image " + index + ": ", error);
                     });
                 });
             }
