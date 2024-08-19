@@ -122,13 +122,13 @@ def add_draggable_functionality(images_data, img_width, img_height):
         # Generate HTML for each image
         html_part = f"""
             <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
-                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 2px; box-sizing: content-box; min-width: 50px; min-height: 30px; font-size: 16px;">
+                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 2px; box-sizing: content-box; min-width: 50px; min-height: 30px; font-size: 16px; resize: both; overflow: hidden;">
                     {data['call_to_action_text']}
                 </div>
-                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 2px; box-sizing: content-box; min-width: 50px; min-height: 30px; font-size: 16px;">
+                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 2px; box-sizing: content-box; min-width: 50px; min-height: 30px; font-size: 16px; resize: both; overflow: hidden;">
                     {data['description_text']}
                 </div>
-                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 2px; cursor: move; min-width: 50px; min-height: 30px;">
+                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 2px; cursor: move; min-width: 50px; min-height: 50px; resize: both; overflow: hidden;">
                     <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: 100%; object-fit: contain;">
                 </div>
             </div>
@@ -144,29 +144,31 @@ def add_draggable_functionality(images_data, img_width, img_height):
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
             function applyInteractions(elementId) {
-                interact('#' + elementId).draggable({
-                    inertia: true,
-                    modifiers: [
-                        interact.modifiers.restrictRect({
-                            restriction: 'parent',
-                            endOnly: true
-                        })
-                    ],
-                    autoScroll: true,
-                    onmove: dragMoveListener
-                }).resizable({
-                    edges: { left: true, right: true, bottom: true, top: true },
-                    inertia: true,
-                    modifiers: [
-                        interact.modifiers.restrictEdges({
-                            outer: 'parent'
-                        }),
-                        interact.modifiers.restrictSize({
-                            min: { width: 50, height: 20 } // Ensuring elements can be resized smaller
-                        })
-                    ],
-                    onmove: resizeMoveListener
-                });
+                interact('#' + elementId)
+                    .draggable({
+                        inertia: true,
+                        modifiers: [
+                            interact.modifiers.restrictRect({
+                                restriction: 'parent',
+                                endOnly: true
+                            })
+                        ],
+                        autoScroll: true,
+                        onmove: dragMoveListener
+                    })
+                    .resizable({
+                        edges: { left: false, right: true, bottom: true, top: false }, // Resize from the bottom-right corner
+                        inertia: true,
+                        modifiers: [
+                            interact.modifiers.restrictEdges({
+                                outer: 'parent'
+                            }),
+                            interact.modifiers.restrictSize({
+                                min: { width: 50, height: 20 }
+                            })
+                        ],
+                        onmove: resizeMoveListener
+                    });
             }
 
             function dragMoveListener(event) {
@@ -185,6 +187,10 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
+                // Update the element's size
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
+
                 // Adjust position after resizing
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
@@ -193,23 +199,13 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
 
-                // Adjust font size for text elements and keep consistent padding
+                // Adjust font size for text elements
                 if (target.id.includes('ctaText') || target.id.includes('descText')) {
                     let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
                     target.style.fontSize = newFontSize + 'px';
 
                     // Maintain consistent padding and background around text
                     target.style.padding = '2px';
-                    target.style.width = 'auto';  // Ensure the text container width adjusts to the text size
-                    target.style.height = 'auto'; // Ensure the text container height adjusts to the text size
-                }
-
-                // Adjust size for the logo image with consistent behavior
-                if (target.id.includes('logoImage')) {
-                    let img = target.querySelector('img');
-                    img.style.width = '100%';
-                    img.style.height = '100%';
-                    img.style.objectFit = 'contain';
                 }
             }
 
