@@ -129,7 +129,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     {data['description_text']}
                 </div>
                 <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; display: inline-block;">
-                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto;">
+                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: auto; height: auto;">
                 </div>
             </div>
         """
