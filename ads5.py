@@ -186,8 +186,8 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
                 // Ensure the background fits tightly around the text with padding
-                target.style.width = 'auto';
-                target.style.height = 'auto';
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
                 target.style.whiteSpace = 'nowrap';
 
                 // Calculate and set the new font size based on the container size
@@ -209,7 +209,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 if (target.id.includes('logoImage')) {
                     let img = target.querySelector('img');
                     img.style.width = target.clientWidth + 'px';
-                    img.style.height = 'auto';
+                    img.style.height = target.clientHeight + 'px';
                 }
             }
 
