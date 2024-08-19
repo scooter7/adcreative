@@ -185,17 +185,12 @@ def add_draggable_functionality(images_data, img_width, img_height):
                         x = (parseFloat(target.getAttribute('data-x')) || 0),
                         y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                    // Ensure the background fits tightly around the text with padding
-                    target.style.width = event.rect.width + 'px';
-                    target.style.height = event.rect.height + 'px';
+                    // Ensure consistent padding around the text
+                    target.style.padding = '2px';
 
-                    x += event.deltaRect.left;
-                    y += event.deltaRect.top;
-
-                    target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-
-                    target.setAttribute('data-x', x);
-                    target.setAttribute('data-y', y);
+                    // Adjust font size based on container size
+                    let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
+                    target.style.fontSize = newFontSize + 'px';
 
                     // Handle resizing for logos
                     if (target.id.includes('logoImage')) {
