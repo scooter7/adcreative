@@ -208,7 +208,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 // Handle resizing for logos
                 if (target.id.includes('logoImage')) {
                     let img = target.querySelector('img');
-                    img.style.width = '100%';
+                    img.style.width = target.clientWidth + 'px';
                     img.style.height = 'auto';
                 }
             }
