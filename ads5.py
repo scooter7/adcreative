@@ -41,9 +41,9 @@ def main():
 
     # Updated color pickers with transparency options
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
-    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000") + str(int(st.slider("Call to Action Background Transparency", 0, 100, 100)/100*255)).zfill(2)
+    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000") + str(hex(int(st.slider("Call to Action Background Transparency", 0, 100, 100)/100*255)))[2:].zfill(2)
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
-    description_bg_color = st.color_picker("Description Background Color", "#000000") + str(int(st.slider("Description Background Transparency", 0, 100, 100)/100*255)).zfill(2)
+    description_bg_color = st.color_picker("Description Background Color", "#000000") + str(hex(int(st.slider("Description Background Transparency", 0, 100, 100)/100*255)))[2:].zfill(2)
 
     logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
     logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
@@ -103,9 +103,9 @@ def main():
                                             'call_to_action_text': call_to_action_text,
                                             'description_text': description_text,
                                             'logo_base64': logo_base64 if uploaded_logo else None,
-                                            'cta_bg_color': call_to_action_bg_color,
+                                            'cta_bg_color': f"rgba({int(call_to_action_bg_color[1:3], 16)},{int(call_to_action_bg_color[3:5], 16)},{int(call_to_action_bg_color[5:7], 16)},{int(call_to_action_bg_color[7:9], 16) / 255})",
                                             'cta_text_color': call_to_action_text_color,
-                                            'desc_bg_color': description_bg_color,
+                                            'desc_bg_color': f"rgba({int(description_bg_color[1:3], 16)},{int(description_bg_color[3:5], 16)},{int(description_bg_color[5:7], 16)},{int(description_bg_color[7:9], 16) / 255})",
                                             'desc_text_color': description_text_color
                                         })
 
