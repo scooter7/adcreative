@@ -128,7 +128,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 2px; box-sizing: content-box; min-width: 50px; min-height: 30px; font-size: 16px;">
                     {data['description_text']}
                 </div>
-                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; cursor: move; min-width: 50px; min-height: 50px;">
+                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 2px; cursor: move; min-width: 50px; min-height: 30px;">
                     <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: 100%; object-fit: contain;">
                 </div>
             </div>
@@ -162,7 +162,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                             outer: 'parent'
                         }),
                         interact.modifiers.restrictSize({
-                            min: { width: 50, height: 50 } // Ensuring the logo can be resized smaller
+                            min: { width: 50, height: 20 } // Ensuring elements can be resized smaller
                         })
                     ],
                     onmove: resizeMoveListener
@@ -193,7 +193,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
 
-                // Adjust font size for text elements
+                // Adjust font size for text elements and keep consistent padding
                 if (target.id.includes('ctaText') || target.id.includes('descText')) {
                     let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
                     target.style.fontSize = newFontSize + 'px';
@@ -204,11 +204,10 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     target.style.height = 'auto'; // Ensure the text container height adjusts to the text size
                 }
 
-                // Adjust size for the logo image
+                // Adjust size for the logo image with consistent behavior
                 if (target.id.includes('logoImage')) {
-                    let img = target.querySelector('img');
-                    img.style.width = event.rect.width + 'px';
-                    img.style.height = event.rect.height + 'px';
+                    target.style.width = event.rect.width + 'px';
+                    target.style.height = event.rect.height + 'px';
                 }
             }
 
