@@ -180,38 +180,30 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 target.setAttribute('data-y', y);
             }
 
-            function resizeMoveListener(event) {
-                var target = event.target,
-                    x = (parseFloat(target.getAttribute('data-x')) || 0),
-                    y = (parseFloat(target.getAttribute('data-y')) || 0);
+                function resizeMoveListener(event) {
+                    var target = event.target,
+                        x = (parseFloat(target.getAttribute('data-x')) || 0),
+                        y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Ensure the background fits tightly around the text with padding
-                target.style.width = 'auto';
-                target.style.height = 'auto';
-                target.style.whiteSpace = 'nowrap';
+                    // Ensure the background fits tightly around the text with padding
+                    target.style.width = event.rect.width + 'px';
+                    target.style.height = event.rect.height + 'px';
 
-                // Calculate and set the new font size based on the container size
-                let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
-                target.style.fontSize = newFontSize + 'px';
+                    x += event.deltaRect.left;
+                    y += event.deltaRect.top;
 
-                // Keep the padding consistent around the text and logo
-                target.style.padding = '5px';
+                    target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
 
-                x += event.deltaRect.left;
-                y += event.deltaRect.top;
+                    target.setAttribute('data-x', x);
+                    target.setAttribute('data-y', y);
 
-                target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
-
-                // Handle resizing for logos
-                if (target.id.includes('logoImage')) {
-                    let img = target.querySelector('img');
-                    img.style.width = target.clientWidth + 'px';
-                    img.style.height = 'auto';
+                    // Handle resizing for logos
+                    if (target.id.includes('logoImage')) {
+                        let img = target.querySelector('img');
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                    }
                 }
-            }
 
             function saveImage() {
                 console.log("Merge and Download button clicked");
