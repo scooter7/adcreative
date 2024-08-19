@@ -190,7 +190,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 target.style.height = event.rect.height + 'px';
                 target.style.whiteSpace = 'nowrap';
 
-                // Calculate and set the new font size based on the container size
+                // Calculate the new font size based on the container size
                 let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
                 target.style.fontSize = newFontSize + 'px';
 
