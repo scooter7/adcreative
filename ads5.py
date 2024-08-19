@@ -245,7 +245,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
         """
 
     js_part += """
-            saveImage();  // Automatically trigger saveImage after applying interactions
         </script>
     """
 
