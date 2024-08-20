@@ -86,7 +86,7 @@ def main():
                 for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
                     for channel, label, dimensions in selected_image_sizes:
                         img = Image.open(image)
-                        img_resized = img.resize(dimensions, Image.ANTIALIAS)
+                        img_resized = img.resize(dimensions, Image.LANCZOS)
                         buffered = BytesIO()
                         img_resized.save(buffered, format="PNG")
                         img_base64 = base64.b64encode(buffered.getvalue()).decode()
