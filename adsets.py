@@ -42,6 +42,9 @@ def main():
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
     description_bg_color = st.color_picker("Description Background Color", "#000000") + str(hex(int(st.slider("Description Background Transparency", 0, 100, 100)/100*255)))[2:].zfill(2)
 
+    # Option to choose the shape of the text containers
+    text_shape = st.selectbox("Select Text Container Shape", ["Rectangle", "Oval"])
+
     logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
     logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
     logo_transparency = st.slider("Logo Transparency (0-100)", 0, 100, 100) / 100.0  # Adding transparency slider for logo
@@ -100,7 +103,8 @@ def main():
                             'cta_text_color': call_to_action_text_color,
                             'desc_bg_color': description_bg_color,
                             'desc_text_color': description_text_color,
-                            'logo_transparency': logo_transparency
+                            'logo_transparency': logo_transparency,
+                            'text_shape': text_shape
                         })
 
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
@@ -114,17 +118,20 @@ def add_draggable_functionality(images_data, img_width, img_height):
         desc_id = f"descText_{index}"
         logo_id = f"logoImage_{index}"
 
+        # Determine border-radius based on selected shape
+        border_radius = "50%" if data['text_shape'] == "Oval" else "0%"
+
         # Generate HTML for each image
         html_part = f"""
             <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
-                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
+                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius};">
                     {data['call_to_action_text']}
                 </div>
-                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
+                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius};">
                     {data['description_text']}
                 </div>
-                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; display: inline-block; opacity: {data['logo_transparency']};">
-                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto;">
+                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 10px; cursor: move; display: inline-block; opacity: {data['logo_transparency']};">
+                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto; pointer-events: all;">
                 </div>
             </div>
             <div style="margin-top: 10px;">
@@ -199,7 +206,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 target.style.fontSize = newFontSize + 'px';
 
                 // Keep the padding consistent around the text and logo
-                target.style.padding = '5px';
+                target.style.padding = '10px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
