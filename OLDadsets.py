@@ -34,11 +34,6 @@ def main():
     # Radio button to mix CTAs and Descriptions
     mix_cta_desc = st.radio("Mix CTAs and Descriptions", ("No", "Yes"))
 
-    width_percentage_cta = st.slider("Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
-    height_percentage_cta = st.slider("Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
-    width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
-    height_percentage_desc = st.slider("Description Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
-
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
     call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
@@ -46,9 +41,6 @@ def main():
 
     # Option to choose the shape of the text containers
     text_shape = st.selectbox("Select Text Container Shape", ["Rectangle", "Oval"])
-
-    logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
-    logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
 
     image_sizes = {
         "IP Targeting": {
