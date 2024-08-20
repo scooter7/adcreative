@@ -268,6 +268,9 @@ def add_draggable_functionality(images_data, img_width, img_height):
             applyInteractions('ctaText_{index}');
             applyInteractions('descText_{index}');
             applyInteractions('logoImage_{index}');
+            adjustOpacity('ctaText_{index}', 100);
+            adjustOpacity('descText_{index}', 100);
+            adjustOpacity('logoImage_{index}', 100);
         """
 
     js_part += """
