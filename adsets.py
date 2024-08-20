@@ -120,15 +120,17 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
                     {data['call_to_action_text']}
                 </div>
-                <input type="range" min="0" max="100" value="100" class="slider" id="ctaSlider_{index}" oninput="adjustOpacity('{cta_id}', this.value)">
                 <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
                     {data['description_text']}
                 </div>
-                <input type="range" min="0" max="100" value="100" class="slider" id="descSlider_{index}" oninput="adjustOpacity('{desc_id}', this.value)">
                 <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; display: inline-block; opacity: {data['logo_transparency']};">
                     <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto;">
                 </div>
-                <input type="range" min="0" max="100" value="{data['logo_transparency']*100}" class="slider" id="logoSlider_{index}" oninput="adjustOpacity('{logo_id}', this.value)">
+            </div>
+            <div style="margin-top: 10px;">
+                <label>CTA Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="ctaSlider_{index}" oninput="adjustOpacity('{cta_id}', this.value)"></label>
+                <label>Description Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="descSlider_{index}" oninput="adjustOpacity('{desc_id}', this.value)"></label>
+                <label>Logo Transparency: <input type="range" min="0" max="100" value="{data['logo_transparency']*100}" class="slider" id="logoSlider_{index}" oninput="adjustOpacity('{logo_id}', this.value)"></label>
             </div>
         """
         html_parts.append(html_part)
