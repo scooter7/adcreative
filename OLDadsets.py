@@ -39,18 +39,16 @@ def main():
     width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
     height_percentage_desc = st.slider("Description Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
 
-    # Adding transparency sliders to the color pickers
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
-    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000") + str(hex(int(st.slider("Call to Action Background Transparency", 0, 100, 100)/100*255)))[2:].zfill(2)
+    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
-    description_bg_color = st.color_picker("Description Background Color", "#000000") + str(hex(int(st.slider("Description Background Transparency", 0, 100, 100)/100*255)))[2:].zfill(2)
+    description_bg_color = st.color_picker("Description Background Color", "#000000")
 
     # Option to choose the shape of the text containers
     text_shape = st.selectbox("Select Text Container Shape", ["Rectangle", "Oval"])
 
     logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
     logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
-    logo_transparency = st.slider("Logo Transparency (0-100)", 0, 100, 100) / 100.0  # Adding transparency slider for logo
 
     image_sizes = {
         "IP Targeting": {
@@ -110,7 +108,6 @@ def main():
                                     'cta_text_color': call_to_action_text_color,
                                     'desc_bg_color': description_bg_color,
                                     'desc_text_color': description_text_color,
-                                    'logo_transparency': logo_transparency,
                                     'text_shape': text_shape
                                 })
             else:
@@ -133,7 +130,6 @@ def main():
                                 'cta_text_color': call_to_action_text_color,
                                 'desc_bg_color': description_bg_color,
                                 'desc_text_color': description_text_color,
-                                'logo_transparency': logo_transparency,
                                 'text_shape': text_shape
                             })
 
@@ -141,7 +137,7 @@ def main():
 
 def add_draggable_functionality(images_data, img_width, img_height):
     html_parts = []
-    
+
     # Iterate over each image and its associated data
     for index, data in enumerate(images_data):
         cta_id = f"ctaText_{index}"
@@ -160,14 +156,14 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius};">
                     {data['description_text']}
                 </div>
-                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 10px; cursor: move; display: inline-block; opacity: {data['logo_transparency']};">
+                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 20px; cursor: move; display: inline-block; opacity: 1;">
                     <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto; pointer-events: all;">
                 </div>
             </div>
             <div style="margin-top: 10px;">
                 <label>CTA Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="ctaSlider_{index}" oninput="adjustOpacity('{cta_id}', this.value)"></label>
                 <label>Description Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="descSlider_{index}" oninput="adjustOpacity('{desc_id}', this.value)"></label>
-                <label>Logo Transparency: <input type="range" min="0" max="100" value="{data['logo_transparency']*100}" class="slider" id="logoSlider_{index}" oninput="adjustOpacity('{logo_id}', this.value)"></label>
+                <label>Logo Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="logoSlider_{index}" oninput="adjustOpacity('{logo_id}', this.value)"></label>
             </div>
         """
         html_parts.append(html_part)
