@@ -31,6 +31,9 @@ def main():
     call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i in range(num_pairs)]
     description_texts = [st.text_input(f"Description Text {i + 1}") for i in range(num_pairs)]
 
+    # Radio button to mix CTAs and Descriptions
+    mix_cta_desc = st.radio("Mix CTAs and Descriptions", ("No", "Yes"))
+
     width_percentage_cta = st.slider("Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
     height_percentage_cta = st.slider("Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
     width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
@@ -85,27 +88,54 @@ def main():
             st.write("Processing images...")
 
             images_data = []
-            for image in uploaded_images:
-                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
-                    for channel, label, dimensions in selected_image_sizes:
-                        img = Image.open(image)
-                        img_resized = img.resize(dimensions, Image.LANCZOS)
-                        buffered = BytesIO()
-                        img_resized.save(buffered, format="PNG")
-                        img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-                        images_data.append({
-                            'img_base64': img_base64,
-                            'call_to_action_text': call_to_action_text,
-                            'description_text': description_text,
-                            'logo_base64': logo_base64 if uploaded_logo else None,
-                            'cta_bg_color': call_to_action_bg_color,
-                            'cta_text_color': call_to_action_text_color,
-                            'desc_bg_color': description_bg_color,
-                            'desc_text_color': description_text_color,
-                            'logo_transparency': logo_transparency,
-                            'text_shape': text_shape
-                        })
+            if mix_cta_desc == "Yes":
+                # Produce all combinations of CTA and Description
+                for call_to_action_text in call_to_action_texts:
+                    for description_text in description_texts:
+                        for image in uploaded_images:
+                            for channel, label, dimensions in selected_image_sizes:
+                                img = Image.open(image)
+                                img_resized = img.resize(dimensions, Image.LANCZOS)
+                                buffered = BytesIO()
+                                img_resized.save(buffered, format="PNG")
+                                img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+                                images_data.append({
+                                    'img_base64': img_base64,
+                                    'call_to_action_text': call_to_action_text,
+                                    'description_text': description_text,
+                                    'logo_base64': logo_base64 if uploaded_logo else None,
+                                    'cta_bg_color': call_to_action_bg_color,
+                                    'cta_text_color': call_to_action_text_color,
+                                    'desc_bg_color': description_bg_color,
+                                    'desc_text_color': description_text_color,
+                                    'logo_transparency': logo_transparency,
+                                    'text_shape': text_shape
+                                })
+            else:
+                # Produce images without mixing CTAs and Descriptions
+                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
+                    for image in uploaded_images:
+                        for channel, label, dimensions in selected_image_sizes:
+                            img = Image.open(image)
+                            img_resized = img.resize(dimensions, Image.LANCZOS)
+                            buffered = BytesIO()
+                            img_resized.save(buffered, format="PNG")
+                            img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+                            images_data.append({
+                                'img_base64': img_base64,
+                                'call_to_action_text': call_to_action_text,
+                                'description_text': description_text,
+                                'logo_base64': logo_base64 if uploaded_logo else None,
+                                'cta_bg_color': call_to_action_bg_color,
+                                'cta_text_color': call_to_action_text_color,
+                                'desc_bg_color': description_bg_color,
+                                'desc_text_color': description_text_color,
+                                'logo_transparency': logo_transparency,
+                                'text_shape': text_shape
+                            })
 
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
 
