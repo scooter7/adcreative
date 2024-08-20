@@ -40,7 +40,7 @@ def main():
     description_bg_color = st.color_picker("Description Background Color", "#000000")
 
     # Option to choose the shape of the text containers
-    text_shape = st.selectbox("Select Text Container Shape", ["Rectangle", "Oval"])
+    text_shape = st.selectbox("Select Text Container Shape", ["Rectangle", "Pill-shaped"])
 
     image_sizes = {
         "IP Targeting": {
@@ -137,15 +137,18 @@ def add_draggable_functionality(images_data, img_width, img_height):
         logo_id = f"logoImage_{index}"
 
         # Determine border-radius based on selected shape
-        border_radius = "50%" if data['text_shape'] == "Oval" else "0%"
+        if data['text_shape'] == "Pill-shaped":
+            border_radius = "50px"  # Making the container pill-shaped
+        else:
+            border_radius = "0px"  # Rectangle
 
         # Generate HTML for each image
         html_part = f"""
             <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
-                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius};">
+                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid #000;">
                     {data['call_to_action_text']}
                 </div>
-                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius};">
+                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid #000;">
                     {data['description_text']}
                 </div>
                 <div id="{logo_id}" class="draggable resizable logo-grabbable" style="position: absolute; top: 250px; left: 50px; padding: 20px; cursor: move; display: inline-block; opacity: 1;">
