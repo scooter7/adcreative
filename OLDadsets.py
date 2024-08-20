@@ -145,10 +145,10 @@ def add_draggable_functionality(images_data, img_width, img_height):
         # Generate HTML for each image
         html_part = f"""
             <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
-                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid #000;">
+                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid {data['cta_bg_color']};">
                     {data['call_to_action_text']}
                 </div>
-                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid #000;">
+                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid {data['desc_bg_color']};">
                     {data['description_text']}
                 </div>
                 <div id="{logo_id}" class="draggable resizable logo-grabbable" style="position: absolute; top: 250px; left: 50px; padding: 20px; cursor: move; display: inline-block; opacity: 1;">
