@@ -1,8 +1,8 @@
 import os
 import streamlit as st
+import base64  # Importing base64 for encoding images
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
-import time
 
 # Main function to handle the Streamlit app logic
 def main():
