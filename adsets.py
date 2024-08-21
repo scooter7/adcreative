@@ -3,6 +3,9 @@ import streamlit as st
 import base64
 from io import BytesIO
 from PIL import Image
+import pyautogui
+import time
+import numpy as np
 
 # Main function to handle the Streamlit app logic
 def main():
@@ -73,7 +76,10 @@ def main():
                 if st.checkbox(label, key=f"{channel}_{label}"):
                     selected_image_sizes.append((channel, label, dimensions))
 
-    if st.button("Merge and Download"):
+    # Option to take screenshots
+    screenshot_directory = st.text_input("Screenshot Save Directory", value=os.getcwd())
+
+    if st.button("Merge and Take Screenshot"):
         if uploaded_images:
             st.write("Processing images...")
 
@@ -125,9 +131,10 @@ def main():
                                 'text_shape': text_shape
                             })
 
-            add_draggable_functionality(images_data, dimensions[0], dimensions[1])
+            # Render images with draggable functionality
+            render_and_capture_images(images_data, dimensions[0], dimensions[1], screenshot_directory)
 
-def add_draggable_functionality(images_data, img_width, img_height):
+def render_and_capture_images(images_data, img_width, img_height, save_directory):
     html_parts = []
 
     # Iterate over each image and its associated data
@@ -169,7 +176,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
     # Generate JavaScript for each image
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
             function applyInteractions(elementId) {
                 interact('#' + elementId).draggable({
@@ -245,25 +251,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 }
             }
 
-            function saveImage() {
-                console.log("Merge and Download button clicked");
-                var images = document.querySelectorAll("[id^='imageContainer_']");
-                images.forEach(function(imageContainer, index) {
-                    html2canvas(imageContainer).then(function(canvas) {
-                        console.log("Canvas generated for image " + index + ", preparing download...");
-                        var dataURL = canvas.toDataURL('image/png');
-                        var link = document.createElement('a');
-                        link.href = dataURL;
-                        link.download = 'final_image_' + index + '.png';
-                        console.log("Triggering download for image " + index + "...");
-                        link.click();
-                        console.log("Download triggered for image " + index + ".");
-                    }).catch(function(error) {
-                        console.error("Error capturing the image " + index + ": ", error);
-                    });
-                });
-            }
-
             // Apply interactions to each element with unique IDs
     """
     for index in range(len(images_data)):
@@ -282,6 +269,16 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
     # Combine HTML and JS into the final component
     st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
+
+    # Wait for rendering to complete
+    time.sleep(2)  # Adjust this delay if necessary
+
+    # Capture screenshots of each rendered image
+    for index in range(len(images_data)):
+        screenshot_path = os.path.join(save_directory, f"final_image_{index}.png")
+        screenshot = pyautogui.screenshot(region=(0, 0, img_width, img_height))
+        screenshot.save(screenshot_path)
+        st.write(f"Screenshot saved: {screenshot_path}")
 
 if __name__ == "__main__":
     main()
