@@ -18,7 +18,7 @@ def main():
         buffered_logo = BytesIO()
         logo.save(buffered_logo, format="PNG")
         logo_base64 = base64.b64encode(buffered_logo.getvalue()).decode()
-        logo_image = logo
+        logo_image = logo.convert("RGBA")  # Ensure logo is in RGBA format
 
     if uploaded_images:
         st.write("Images uploaded successfully!")
@@ -308,7 +308,7 @@ def save_and_download_images(images_data, logo_image):
         # Place the logo on the image
         if logo_image:
             logo_position = (50, 250)
-            img.paste(logo_image.resize((100, 100)), logo_position, logo_image.convert("RGBA"))
+            img.paste(logo_image.resize((100, 100)), logo_position, logo_image)
 
         # Save the image to a BytesIO object
         buffered = BytesIO()
