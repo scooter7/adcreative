@@ -1,8 +1,8 @@
 import os
 import streamlit as st
-import base64  # Importing base64 for encoding images
+import base64
 from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 # Main function to handle the Streamlit app logic
 def main():
@@ -11,9 +11,12 @@ def main():
     uploaded_images = st.file_uploader("Upload multiple images", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
     uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
 
-    logo_image = None
+    logo_base64 = None
     if uploaded_logo:
-        logo_image = Image.open(uploaded_logo).convert("RGBA")
+        logo = Image.open(uploaded_logo)
+        buffered_logo = BytesIO()
+        logo.save(buffered_logo, format="PNG")
+        logo_base64 = base64.b64encode(buffered_logo.getvalue()).decode()
 
     if uploaded_images:
         st.write("Images uploaded successfully!")
@@ -70,7 +73,7 @@ def main():
                 if st.checkbox(label, key=f"{channel}_{label}"):
                     selected_image_sizes.append((channel, label, dimensions))
 
-    if st.button("Merge and Display Images"):
+    if st.button("Merge and Download"):
         if uploaded_images:
             st.write("Processing images...")
 
@@ -92,7 +95,7 @@ def main():
                                     'img_base64': img_base64,
                                     'call_to_action_text': call_to_action_text,
                                     'description_text': description_text,
-                                    'logo_base64': base64.b64encode(buffered.getvalue()).decode() if uploaded_logo else None,
+                                    'logo_base64': logo_base64 if uploaded_logo else None,
                                     'cta_bg_color': call_to_action_bg_color,
                                     'cta_text_color': call_to_action_text_color,
                                     'desc_bg_color': description_bg_color,
@@ -114,7 +117,7 @@ def main():
                                 'img_base64': img_base64,
                                 'call_to_action_text': call_to_action_text,
                                 'description_text': description_text,
-                                'logo_base64': base64.b64encode(buffered.getvalue()).decode() if uploaded_logo else None,
+                                'logo_base64': logo_base64 if uploaded_logo else None,
                                 'cta_bg_color': call_to_action_bg_color,
                                 'cta_text_color': call_to_action_text_color,
                                 'desc_bg_color': description_bg_color,
@@ -122,10 +125,12 @@ def main():
                                 'text_shape': text_shape
                             })
 
-            # Render images with draggable functionality
-            render_images_with_controls(images_data, dimensions[0], dimensions[1])
+            add_draggable_functionality(images_data, dimensions[0], dimensions[1])
 
-def render_images_with_controls(images_data, img_width, img_height):
+            # Trigger the download after rendering and manipulation
+            save_and_download_images()
+
+def add_draggable_functionality(images_data, img_width, img_height):
     html_parts = []
 
     # Iterate over each image and its associated data
@@ -242,6 +247,25 @@ def render_images_with_controls(images_data, img_width, img_height):
                 }
             }
 
+            function saveImage() {
+                console.log("Merge and Download button clicked");
+                var images = document.querySelectorAll("[id^='imageContainer_']");
+                images.forEach(function(imageContainer, index) {
+                    html2canvas(imageContainer).then(function(canvas) {
+                        console.log("Canvas generated for image " + index + ", preparing download...");
+                        var dataURL = canvas.toDataURL('image/png');
+                        var link = document.createElement('a');
+                        link.href = dataURL;
+                        link.download = 'final_image_' + index + '.png';
+                        console.log("Triggering download for image " + index + "...");
+                        link.click();
+                        console.log("Download triggered for image " + index + ".");
+                    }).catch(function(error) {
+                        console.error("Error capturing the image " + index + ": ", error);
+                    });
+                });
+            }
+
             // Apply interactions to each element with unique IDs
     """
     for index in range(len(images_data)):
@@ -255,6 +279,7 @@ def render_images_with_controls(images_data, img_width, img_height):
         """
 
     js_part += """
+            saveImage();  // Trigger the download after applying interactions
         </script>
     """
 
