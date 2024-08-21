@@ -4,6 +4,7 @@ import base64
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
+# Main function to handle the Streamlit app logic
 def main():
     st.title("Image Text and Logo Overlay App")
 
@@ -33,6 +34,7 @@ def main():
     call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i in range(num_pairs)]
     description_texts = [st.text_input(f"Description Text {i + 1}") for i in range(num_pairs)]
 
+    # Radio button to mix CTAs and Descriptions
     mix_cta_desc = st.radio("Mix CTAs and Descriptions", ("No", "Yes"))
 
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
@@ -40,6 +42,7 @@ def main():
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
     description_bg_color = st.color_picker("Description Background Color", "#000000")
 
+    # Option to choose the shape of the text containers
     text_shape = st.selectbox("Select Text Container Shape", ["Rectangle", "Pill-shaped"])
 
     image_sizes = {
@@ -80,6 +83,7 @@ def main():
             images_data = []
 
             if mix_cta_desc == "Yes":
+                # Produce all combinations of CTA and Description
                 for call_to_action_text in call_to_action_texts:
                     for description_text in description_texts:
                         for image in uploaded_images:
@@ -103,6 +107,7 @@ def main():
                                     'image': img_resized
                                 })
             else:
+                # Produce images without mixing CTAs and Descriptions
                 for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
                     for image in uploaded_images:
                         for channel, label, dimensions in selected_image_sizes:
@@ -127,24 +132,24 @@ def main():
 
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
 
-            save_and_download_images(images_data, logo_image)
-
 def add_draggable_functionality(images_data, img_width, img_height):
     html_parts = []
-    js_parts = []
 
+    # Iterate over each image and its associated data
     for index, data in enumerate(images_data):
         cta_id = f"ctaText_{index}"
         desc_id = f"descText_{index}"
         logo_id = f"logoImage_{index}"
 
+        # Determine border-radius based on selected shape
         if data['text_shape'] == "Pill-shaped":
-            border_radius = "50px"
+            border_radius = "50px"  # Making the container pill-shaped
         else:
-            border_radius = "0px"
+            border_radius = "0px"  # Rectangle
 
+        # Generate HTML for each image
         html_part = f"""
-            <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
+            <div id="screenshotArea_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat; border: 1px solid #ccc;">
                 <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid {data['cta_bg_color']};">
                     {data['call_to_action_text']}
                 </div>
@@ -152,142 +157,99 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     {data['description_text']}
                 </div>
                 <div id="{logo_id}" class="draggable resizable logo-grabbable" style="position: absolute; top: 250px; left: 50px; padding: 20px; cursor: move; display: inline-block; opacity: 1;">
-                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto; pointer-events: none;">
+                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100px; height: auto; pointer-events: none;">
                 </div>
             </div>
             <div style="margin-top: 10px;">
-                <label>CTA Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="ctaSlider_{index}" oninput="adjustOpacity('{cta_id}', this.value)"></label>
-                <label>Description Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="descSlider_{index}" oninput="adjustOpacity('{desc_id}', this.value)"></label>
-                <label>Logo Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="logoSlider_{index}" oninput="adjustOpacity('{logo_id}', this.value)"></label>
+                <button onclick="takeScreenshot('screenshotArea_{index}')">Download Image {index+1}</button>
             </div>
-            <input type="hidden" id="ctaPos_{index}" name="ctaPos_{index}" value="" />
-            <input type="hidden" id="descPos_{index}" name="descPos_{index}" value="" />
-            <input type="hidden" id="logoPos_{index}" name="logoPos_{index}" value="" />
         """
         html_parts.append(html_part)
 
-        js_part = f"""
-            <script>
-                document.getElementById('{cta_id}').addEventListener('mouseup', function() {{
-                    document.getElementById('ctaPos_{index}').value = this.style.transform;
-                }});
-                document.getElementById('{desc_id}').addEventListener('mouseup', function() {{
-                    document.getElementById('descPos_{index}').value = this.style.transform;
-                }});
-                document.getElementById('{logo_id}').addEventListener('mouseup', function() {{
-                    document.getElementById('logoPos_{index}').value = this.style.transform;
-                }});
+    # Combine all HTML parts into a single string
+    html_content = "\n".join(html_parts)
 
-                interact('#{cta_id}').draggable({{
+    # Generate JavaScript for each image
+    js_part = """
+        <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+        <script>
+            function applyInteractions(elementId) {
+                interact('#' + elementId).draggable({
+                    inertia: true,
+                    modifiers: [
+                        interact.modifiers.restrictRect({
+                            restriction: 'parent',
+                            endOnly: true
+                        })
+                    ],
+                    autoScroll: true,
                     onmove: dragMoveListener
-                }}).resizable({{
-                    edges: {{ left: true, right: true, bottom: true, top: true }},
+                }).resizable({
+                    edges: { left: true, right: true, bottom: true, top: true },
+                    inertia: true,
+                    modifiers: [
+                        interact.modifiers.restrictEdges({
+                            outer: 'parent'
+                        }),
+                        interact.modifiers.restrictSize({
+                            min: { width: 50, height: 20 }
+                        })
+                    ],
                     onmove: resizeMoveListener
-                }});
+                });
+            }
 
-                interact('#{desc_id}').draggable({{
-                    onmove: dragMoveListener
-                }}).resizable({{
-                    edges: {{ left: true, right: true, bottom: true, top: true }},
-                    onmove: resizeMoveListener
-                }});
+            function dragMoveListener(event) {
+                var target = event.target,
+                    x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+                    y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-                interact('#{logo_id}').draggable({{
-                    onmove: dragMoveListener
-                }}).resizable({{
-                    edges: {{ left: true, right: true, bottom: true, top: true }},
-                    onmove: resizeMoveListener
-                }});
+                target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
 
-                function dragMoveListener(event) {{
-                    var target = event.target;
-                    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+            }
 
-                    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+            function resizeMoveListener(event) {
+                var target = event.target,
+                    x = (parseFloat(target.getAttribute('data-x')) || 0),
+                    y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                    target.setAttribute('data-x', x);
-                    target.setAttribute('data-y', y);
-                }}
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
 
-                function resizeMoveListener(event) {{
-                    var target = event.target;
-                    var x = (parseFloat(target.getAttribute('data-x')) || 0);
-                    var y = (parseFloat(target.getAttribute('data-y')) || 0);
+                x += event.deltaRect.left;
+                y += event.deltaRect.top;
 
-                    target.style.width = event.rect.width + 'px';
-                    target.style.height = event.rect.height + 'px';
+                target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
 
-                    x += event.deltaRect.left;
-                    y += event.deltaRect.top;
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+            }
 
-                    target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+            function takeScreenshot(elementId) {
+                html2canvas(document.querySelector("#" + elementId)).then(canvas => {
+                    var link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/png');
+                    link.download = elementId + '.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            }
 
-                    target.setAttribute('data-x', x);
-                    target.setAttribute('data-y', y);
-                }}
-            </script>
-        """
-        js_parts.append(js_part)
+            // Apply interactions to each element
+            for (let i = 0; i < """ + str(len(images_data)) + """; i++) {
+                applyInteractions('ctaText_' + i);
+                applyInteractions('descText_' + i);
+                applyInteractions('logoImage_' + i);
+            }
+        </script>
+    """
 
-    st.components.v1.html("\n".join(html_parts) + "\n".join(js_parts), height=img_height * len(images_data) + 300)
-
-def save_and_download_images(images_data, logo_image):
-    for index, data in enumerate(images_data):
-        img = data['image']
-        draw = ImageDraw.Draw(img)
-
-        font_path = "arial.ttf"
-        font_size = 20
-        font = ImageFont.truetype(font_path, font_size) if os.path.exists(font_path) else ImageFont.load_default()
-
-        # Retrieve the final positions
-        cta_transform = st.text_input(f"ctaPos_{index}")
-        desc_transform = st.text_input(f"descPos_{index}")
-        logo_transform = st.text_input(f"logoPos_{index}")
-
-        cta_x, cta_y = parse_transform(cta_transform)
-        desc_x, desc_y = parse_transform(desc_transform)
-        logo_x, logo_y = parse_transform(logo_transform)
-
-        cta_text_bbox = draw.textbbox((0, 0), data['call_to_action_text'], font=font)
-        desc_text_bbox = draw.textbbox((0, 0), data['description_text'], font=font)
-
-        cta_text_size = (cta_text_bbox[2] - cta_text_bbox[0], cta_text_bbox[3] - cta_text_bbox[1])
-        desc_text_size = (desc_text_bbox[2] - desc_text_bbox[0], desc_text_bbox[3] - desc_text_bbox[1])
-
-        draw.rectangle(
-            [(cta_x, cta_y), (cta_x + cta_text_size[0] + 20, cta_y + cta_text_size[1] + 10)],
-            fill=data['cta_bg_color'],
-            outline=data['cta_bg_color'],
-        )
-        draw.text((cta_x + 10, cta_y + 5), data['call_to_action_text'], fill=data['cta_text_color'], font=font)
-
-        draw.rectangle(
-            [(desc_x, desc_y), (desc_x + desc_text_size[0] + 20, desc_y + desc_text_size[1] + 10)],
-            fill=data['desc_bg_color'],
-            outline=data['desc_bg_color'],
-        )
-        draw.text((desc_x + 10, desc_y + 5), data['description_text'], fill=data['desc_text_color'], font=font)
-
-        if logo_image:
-            logo_resized = logo_image.resize((100, 100), Image.LANCZOS)
-            img.paste(logo_resized, (logo_x, logo_y), logo_resized)
-
-        buffered = BytesIO()
-        img.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
-
-        st.markdown(
-            f'<a href="data:image/png;base64,{img_str}" download="final_image_{index}.png">Download final_image_{index}.png</a>',
-            unsafe_allow_html=True
-        )
-
-def parse_transform(transform_str):
-    if transform_str:
-        x, y = transform_str.replace("translate(", "").replace("px)", "").split(",")
-        return int(float(x.strip())), int(float(y.strip()))
-    return 50, 50
+    # Combine HTML and JS into the final component
+    st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
 
 if __name__ == "__main__":
     main()
