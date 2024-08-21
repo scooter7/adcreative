@@ -284,7 +284,7 @@ def save_and_download_images(images_data, logo_image):
             fill=data['desc_bg_color'],
             outline=data['desc_bg_color'],
         )
-        draw.text((desc_position[0] + 10, desc_position[1] + 5), data['description_text'], fill(data['desc_text_color'], font=font)
+        draw.text((desc_position[0] + 10, desc_position[1] + 5), data['description_text'], fill=data['desc_text_color'], font=font)
 
         # Place the logo on the image
         if logo_image:
