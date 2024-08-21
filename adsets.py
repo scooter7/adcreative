@@ -127,9 +127,6 @@ def main():
 
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
 
-            # Trigger the download after rendering and manipulation
-            save_and_download_images()
-
 def add_draggable_functionality(images_data, img_width, img_height):
     html_parts = []
 
@@ -172,6 +169,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
     # Generate JavaScript for each image
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
             function applyInteractions(elementId) {
                 interact('#' + elementId).draggable({
