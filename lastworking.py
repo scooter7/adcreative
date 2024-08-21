@@ -2,7 +2,7 @@ import os
 import streamlit as st
 import base64
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 # Main function to handle the Streamlit app logic
 def main():
@@ -12,11 +12,14 @@ def main():
     uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
 
     logo_base64 = None
+    logo_image = None
     if uploaded_logo:
         logo = Image.open(uploaded_logo)
+        logo = logo.convert("RGBA")  # Ensure logo is in RGBA format
         buffered_logo = BytesIO()
         logo.save(buffered_logo, format="PNG")
         logo_base64 = base64.b64encode(buffered_logo.getvalue()).decode()
+        logo_image = logo
 
     if uploaded_images:
         st.write("Images uploaded successfully!")
@@ -31,24 +34,16 @@ def main():
     call_to_action_texts = [st.text_input(f"Call to Action Text {i + 1}") for i in range(num_pairs)]
     description_texts = [st.text_input(f"Description Text {i + 1}") for i in range(num_pairs)]
 
-    width_percentage_cta = st.slider("Call to Action Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
-    height_percentage_cta = st.slider("Call to Action Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
-    width_percentage_desc = st.slider("Description Width (Percentage of Image Width)", 1, 100, 50, step=1) / 100.0
-    height_percentage_desc = st.slider("Description Height (Percentage of Image Height)", 1, 100, 10, step=1) / 100.0
+    # Radio button to mix CTAs and Descriptions
+    mix_cta_desc = st.radio("Mix CTAs and Descriptions", ("No", "Yes"))
 
-    selected_cta_positions = st.multiselect("Select Call to Action Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
-    selected_desc_positions = st.multiselect("Select Description Text Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
-
-    # Adding transparency sliders to the color pickers
     call_to_action_text_color = st.color_picker("Call to Action Text Color", "#FFFFFF")
-    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000") + str(hex(int(st.slider("Call to Action Background Transparency", 0, 100, 100)/100*255)))[2:].zfill(2)
+    call_to_action_bg_color = st.color_picker("Call to Action Background Color", "#000000")
     description_text_color = st.color_picker("Description Text Color", "#FFFFFF")
-    description_bg_color = st.color_picker("Description Background Color", "#000000") + str(hex(int(st.slider("Description Background Transparency", 0, 100, 100)/100*255)))[2:].zfill(2)
+    description_bg_color = st.color_picker("Description Background Color", "#000000")
 
-    logo_width_percentage = st.slider("Logo Width (Percentage of Image Width)", 1, 100, 20, step=1) / 100.0
-    logo_height_percentage = st.slider("Logo Height (Percentage of Image Height)", 1, 100, 20, step=1) / 100.0
-    logo_transparency = st.slider("Logo Transparency (0-100)", 0, 100, 100) / 100.0  # Adding transparency slider for logo
-    selected_logo_positions = st.multiselect("Select Logo Positions", ["top-left", "top-center", "top-right", "middle-left", "middle-center", "middle-right", "bottom-left", "bottom-center", "bottom-right"])
+    # Option to choose the shape of the text containers
+    text_shape = st.selectbox("Select Text Container Shape", ["Rectangle", "Pill-shaped"])
 
     image_sizes = {
         "IP Targeting": {
@@ -82,58 +77,96 @@ def main():
                     selected_image_sizes.append((channel, label, dimensions))
 
     if st.button("Merge and Download"):
-        if uploaded_images and selected_cta_positions and selected_desc_positions and selected_logo_positions:
+        if uploaded_images:
             st.write("Processing images...")
 
             images_data = []
-            for image in uploaded_images:
-                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
-                    for cta_position in selected_cta_positions:
-                        for desc_position in selected_desc_positions:
-                            for logo_position in selected_logo_positions:
-                                if cta_position != desc_position and cta_position != logo_position and desc_position != logo_position:
-                                    for channel, label, dimensions in selected_image_sizes:
-                                        img = Image.open(image)
-                                        img_resized = img.resize(dimensions, Image.ANTIALIAS)
-                                        buffered = BytesIO()
-                                        img_resized.save(buffered, format="PNG")
-                                        img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-                                        images_data.append({
-                                            'img_base64': img_base64,
-                                            'call_to_action_text': call_to_action_text,
-                                            'description_text': description_text,
-                                            'logo_base64': logo_base64 if uploaded_logo else None,
-                                            'cta_bg_color': call_to_action_bg_color,
-                                            'cta_text_color': call_to_action_text_color,
-                                            'desc_bg_color': description_bg_color,
-                                            'desc_text_color': description_text_color,
-                                            'logo_transparency': logo_transparency
-                                        })
+            if mix_cta_desc == "Yes":
+                # Produce all combinations of CTA and Description
+                for call_to_action_text in call_to_action_texts:
+                    for description_text in description_texts:
+                        for image in uploaded_images:
+                            for channel, label, dimensions in selected_image_sizes:
+                                img = Image.open(image)
+                                img_resized = img.resize(dimensions, Image.LANCZOS)
+                                buffered = BytesIO()
+                                img_resized.save(buffered, format="PNG")
+                                img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+                                images_data.append({
+                                    'img_base64': img_base64,
+                                    'call_to_action_text': call_to_action_text,
+                                    'description_text': description_text,
+                                    'logo_base64': logo_base64 if uploaded_logo else None,
+                                    'cta_bg_color': call_to_action_bg_color,
+                                    'cta_text_color': call_to_action_text_color,
+                                    'desc_bg_color': description_bg_color,
+                                    'desc_text_color': description_text_color,
+                                    'text_shape': text_shape,
+                                    'image': img_resized
+                                })
+            else:
+                # Produce images without mixing CTAs and Descriptions
+                for call_to_action_text, description_text in zip(call_to_action_texts, description_texts):
+                    for image in uploaded_images:
+                        for channel, label, dimensions in selected_image_sizes:
+                            img = Image.open(image)
+                            img_resized = img.resize(dimensions, Image.LANCZOS)
+                            buffered = BytesIO()
+                            img_resized.save(buffered, format="PNG")
+                            img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+                            images_data.append({
+                                'img_base64': img_base64,
+                                'call_to_action_text': call_to_action_text,
+                                'description_text': description_text,
+                                'logo_base64': logo_base64 if uploaded_logo else None,
+                                'cta_bg_color': call_to_action_bg_color,
+                                'cta_text_color': call_to_action_text_color,
+                                'desc_bg_color': description_bg_color,
+                                'desc_text_color': description_text_color,
+                                'text_shape': text_shape,
+                                'image': img_resized
+                            })
 
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
 
+            # Trigger the download after rendering and manipulation
+            save_and_download_images(images_data, logo_image)
+
 def add_draggable_functionality(images_data, img_width, img_height):
     html_parts = []
-    
+
     # Iterate over each image and its associated data
     for index, data in enumerate(images_data):
         cta_id = f"ctaText_{index}"
         desc_id = f"descText_{index}"
         logo_id = f"logoImage_{index}"
 
+        # Determine border-radius based on selected shape
+        if data['text_shape'] == "Pill-shaped":
+            border_radius = "50px"  # Making the container pill-shaped
+        else:
+            border_radius = "0px"  # Rectangle
+
         # Generate HTML for each image
         html_part = f"""
             <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
-                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
+                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid {data['cta_bg_color']};">
                     {data['call_to_action_text']}
                 </div>
-                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 5px; font-size: 16px; display: inline-block;">
+                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid {data['desc_bg_color']};">
                     {data['description_text']}
                 </div>
-                <div id="{logo_id}" class="draggable resizable" style="position: absolute; top: 250px; left: 50px; padding: 5px; display: inline-block; opacity: {data['logo_transparency']};">
-                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto;">
+                <div id="{logo_id}" class="draggable resizable logo-grabbable" style="position: absolute; top: 250px; left: 50px; padding: 20px; cursor: move; display: inline-block; opacity: 1;">
+                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto; pointer-events: none;">
                 </div>
+            </div>
+            <div style="margin-top: 10px;">
+                <label>CTA Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="ctaSlider_{index}" oninput="adjustOpacity('{cta_id}', this.value)"></label>
+                <label>Description Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="descSlider_{index}" oninput="adjustOpacity('{desc_id}', this.value)"></label>
+                <label>Logo Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="logoSlider_{index}" oninput="adjustOpacity('{logo_id}', this.value)"></label>
             </div>
         """
         html_parts.append(html_part)
@@ -144,7 +177,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
     # Generate JavaScript for each image
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
             function applyInteractions(elementId) {
                 interact('#' + elementId).draggable({
@@ -170,6 +202,10 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     ],
                     onmove: resizeMoveListener
                 });
+            }
+
+            function adjustOpacity(elementId, value) {
+                document.getElementById(elementId).style.opacity = value / 100;
             }
 
             function dragMoveListener(event) {
@@ -198,7 +234,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 target.style.fontSize = newFontSize + 'px';
 
                 // Keep the padding consistent around the text and logo
-                target.style.padding = '5px';
+                target.style.padding = '10px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
@@ -216,25 +252,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 }
             }
 
-            function saveImage() {
-                console.log("Merge and Download button clicked");
-                var images = document.querySelectorAll("[id^='imageContainer_']");
-                images.forEach(function(imageContainer, index) {
-                    html2canvas(imageContainer).then(function(canvas) {
-                        console.log("Canvas generated for image " + index + ", preparing download...");
-                        var dataURL = canvas.toDataURL('image/png');
-                        var link = document.createElement('a');
-                        link.href = dataURL;
-                        link.download = 'final_image_' + index + '.png';
-                        console.log("Triggering download for image " + index + "...");
-                        link.click();
-                        console.log("Download triggered for image " + index + ".");
-                    }).catch(function(error) {
-                        console.error("Error capturing the image " + index + ": ", error);
-                    });
-                });
-            }
-
             // Apply interactions to each element with unique IDs
     """
     for index in range(len(images_data)):
@@ -242,6 +259,9 @@ def add_draggable_functionality(images_data, img_width, img_height):
             applyInteractions('ctaText_{index}');
             applyInteractions('descText_{index}');
             applyInteractions('logoImage_{index}');
+            adjustOpacity('ctaText_{index}', 100);
+            adjustOpacity('descText_{index}', 100);
+            adjustOpacity('logoImage_{index}', 100);
         """
 
     js_part += """
@@ -250,6 +270,58 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
     # Combine HTML and JS into the final component
     st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
+
+def save_and_download_images(images_data, logo_image):
+    for index, data in enumerate(images_data):
+        img = data['image']
+        draw = ImageDraw.Draw(img)
+
+        # Font settings
+        font_path = "arial.ttf"  # Update with the path to a valid .ttf font file if necessary
+        font_size = 20
+        font = ImageFont.truetype(font_path, font_size) if os.path.exists(font_path) else ImageFont.load_default()
+
+        # Calculate text size and position
+        cta_text_bbox = draw.textbbox((0, 0), data['call_to_action_text'], font=font)
+        desc_text_bbox = draw.textbbox((0, 0), data['description_text'], font=font)
+
+        cta_text_size = (cta_text_bbox[2] - cta_text_bbox[0], cta_text_bbox[3] - cta_text_bbox[1])
+        desc_text_size = (desc_text_bbox[2] - desc_text_bbox[0], desc_text_bbox[3] - desc_text_bbox[1])
+
+        cta_position = (50, 50)
+        desc_position = (50, 150)
+
+        # Draw the CTA and Description texts with background
+        draw.rectangle(
+            [cta_position, (cta_position[0] + cta_text_size[0] + 20, cta_position[1] + cta_text_size[1] + 10)],
+            fill=data['cta_bg_color'],
+            outline=data['cta_bg_color'],
+        )
+        draw.text((cta_position[0] + 10, cta_position[1] + 5), data['call_to_action_text'], fill=data['cta_text_color'], font=font)
+
+        draw.rectangle(
+            [desc_position, (desc_position[0] + desc_text_size[0] + 20, desc_position[1] + desc_text_size[1] + 10)],
+            fill=data['desc_bg_color'],
+            outline=data['desc_bg_color'],
+        )
+        draw.text((desc_position[0] + 10, desc_position[1] + 5), data['description_text'], fill=data['desc_text_color'], font=font)
+
+        # Place the logo on the image
+        if logo_image:
+            logo_position = (50, 250)
+            logo_resized = logo_image.resize((100, 100), Image.LANCZOS)
+            img.paste(logo_resized, logo_position, logo_resized)
+
+        # Save the image to a BytesIO object
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+
+        # Display download link
+        st.markdown(
+            f'<a href="data:image/png;base64,{img_str}" download="final_image_{index}.png">Download final_image_{index}.png</a>',
+            unsafe_allow_html=True
+        )
 
 if __name__ == "__main__":
     main()
