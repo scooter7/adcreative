@@ -104,7 +104,13 @@ def main():
                                     'desc_bg_color': description_bg_color,
                                     'desc_text_color': description_text_color,
                                     'text_shape': text_shape,
-                                    'image': img_resized
+                                    'image': img_resized,
+                                    'cta_position': (50, 50),
+                                    'desc_position': (50, 150),
+                                    'logo_position': (50, 250),
+                                    'cta_size': (150, 50),
+                                    'desc_size': (150, 50),
+                                    'logo_size': (100, 100)
                                 })
             else:
                 # Produce images without mixing CTAs and Descriptions
@@ -127,9 +133,16 @@ def main():
                                 'desc_bg_color': description_bg_color,
                                 'desc_text_color': description_text_color,
                                 'text_shape': text_shape,
-                                'image': img_resized
+                                'image': img_resized,
+                                'cta_position': (50, 50),
+                                'desc_position': (50, 150),
+                                'logo_position': (50, 250),
+                                'cta_size': (150, 50),
+                                'desc_size': (150, 50),
+                                'logo_size': (100, 100)
                             })
 
+            # Add draggable functionality
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
 
             # Trigger the download after rendering and manipulation
@@ -153,13 +166,13 @@ def add_draggable_functionality(images_data, img_width, img_height):
         # Generate HTML for each image
         html_part = f"""
             <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
-                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid {data['cta_bg_color']};">
+                <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: {data['cta_position'][1]}px; left: {data['cta_position'][0]}px; width: {data['cta_size'][0]}px; height: {data['cta_size'][1]}px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid {data['cta_bg_color']};">
                     {data['call_to_action_text']}
                 </div>
-                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: 150px; left: 50px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid {data['desc_bg_color']};">
+                <div id="{desc_id}" class="draggable resizable" style="position: absolute; top: {data['desc_position'][1]}px; left: {data['desc_position'][0]}px; width: {data['desc_size'][0]}px; height: {data['desc_size'][1]}px; background-color:{data['desc_bg_color']}; color:{data['desc_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid {data['desc_bg_color']};">
                     {data['description_text']}
                 </div>
-                <div id="{logo_id}" class="draggable resizable logo-grabbable" style="position: absolute; top: 250px; left: 50px; padding: 20px; cursor: move; display: inline-block; opacity: 1;">
+                <div id="{logo_id}" class="draggable resizable logo-grabbable" style="position: absolute; top: {data['logo_position'][1]}px; left: {data['logo_position'][0]}px; width: {data['logo_size'][0]}px; height: {data['logo_size'][1]}px; padding: 20px; cursor: move; display: inline-block; opacity: 1;">
                     <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto; pointer-events: none;">
                 </div>
             </div>
@@ -217,6 +230,10 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
+
+                // Update position for saving
+                document.getElementById('ctaText_' + elementId.split('_')[1]).setAttribute('data-x', x);
+                document.getElementById('ctaText_' + elementId.split('_')[1]).setAttribute('data-y', y);
             }
 
             function resizeMoveListener(event) {
@@ -225,16 +242,8 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
                 // Ensure the background fits tightly around the text with padding
-                target.style.width = 'auto';
-                target.style.height = 'auto';
-                target.style.whiteSpace = 'nowrap';
-
-                // Calculate and set the new font size based on the container size
-                let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
-                target.style.fontSize = newFontSize + 'px';
-
-                // Keep the padding consistent around the text and logo
-                target.style.padding = '10px';
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
@@ -282,25 +291,20 @@ def save_and_download_images(images_data, logo_image):
         font = ImageFont.truetype(font_path, font_size) if os.path.exists(font_path) else ImageFont.load_default()
 
         # Calculate text size and position
-        cta_text_bbox = draw.textbbox((0, 0), data['call_to_action_text'], font=font)
-        desc_text_bbox = draw.textbbox((0, 0), data['description_text'], font=font)
-
-        cta_text_size = (cta_text_bbox[2] - cta_text_bbox[0], cta_text_bbox[3] - cta_text_bbox[1])
-        desc_text_size = (desc_text_bbox[2] - desc_text_bbox[0], desc_text_bbox[3] - desc_text_bbox[1])
-
-        cta_position = (50, 50)
-        desc_position = (50, 150)
+        cta_position = (int(data['cta_position'][0]), int(data['cta_position'][1]))
+        desc_position = (int(data['desc_position'][0]), int(data['desc_position'][1]))
+        logo_position = (int(data['logo_position'][0]), int(data['logo_position'][1]))
 
         # Draw the CTA and Description texts with background
         draw.rectangle(
-            [cta_position, (cta_position[0] + cta_text_size[0] + 20, cta_position[1] + cta_text_size[1] + 10)],
+            [cta_position, (cta_position[0] + data['cta_size'][0], cta_position[1] + data['cta_size'][1])],
             fill=data['cta_bg_color'],
             outline=data['cta_bg_color'],
         )
         draw.text((cta_position[0] + 10, cta_position[1] + 5), data['call_to_action_text'], fill=data['cta_text_color'], font=font)
 
         draw.rectangle(
-            [desc_position, (desc_position[0] + desc_text_size[0] + 20, desc_position[1] + desc_text_size[1] + 10)],
+            [desc_position, (desc_position[0] + data['desc_size'][0], desc_position[1] + data['desc_size'][1])],
             fill=data['desc_bg_color'],
             outline=data['desc_bg_color'],
         )
@@ -308,8 +312,7 @@ def save_and_download_images(images_data, logo_image):
 
         # Place the logo on the image
         if logo_image:
-            logo_position = (50, 250)
-            logo_resized = logo_image.resize((100, 100), Image.LANCZOS)
+            logo_resized = logo_image.resize((data['logo_size'][0], data['logo_size'][1]), Image.LANCZOS)
             img.paste(logo_resized, logo_position, logo_resized)
 
         # Save the image to a BytesIO object
