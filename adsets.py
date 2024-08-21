@@ -132,6 +132,9 @@ def main():
 
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
 
+            # Trigger the download after rendering and manipulation
+            save_and_download_images(images_data, logo_image)
+
 def add_draggable_functionality(images_data, img_width, img_height):
     html_parts = []
 
@@ -149,7 +152,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
         # Generate HTML for each image
         html_part = f"""
-            <div id="screenshotArea_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat; border: 1px solid #ccc;">
+            <div id="imageContainer_{index}" style="position: relative; width: {img_width}px; height: {img_height}px; background-image: url('data:image/png;base64,{data['img_base64']}'); background-size: contain; background-repeat: no-repeat;">
                 <div id="{cta_id}" class="draggable resizable" style="position: absolute; top: 50px; left: 50px; background-color:{data['cta_bg_color']}; color:{data['cta_text_color']}; padding: 10px; font-size: 16px; display: inline-block; border-radius: {border_radius}; border: 2px solid {data['cta_bg_color']};">
                     {data['call_to_action_text']}
                 </div>
@@ -157,11 +160,13 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     {data['description_text']}
                 </div>
                 <div id="{logo_id}" class="draggable resizable logo-grabbable" style="position: absolute; top: 250px; left: 50px; padding: 20px; cursor: move; display: inline-block; opacity: 1;">
-                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100px; height: auto; pointer-events: none;">
+                    <img src="data:image/png;base64,{data['logo_base64']}" style="width: 100%; height: auto; pointer-events: none;">
                 </div>
             </div>
             <div style="margin-top: 10px;">
-                <button onclick="takeScreenshot('screenshotArea_{index}')">Download Image {index+1}</button>
+                <label>CTA Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="ctaSlider_{index}" oninput="adjustOpacity('{cta_id}', this.value)"></label>
+                <label>Description Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="descSlider_{index}" oninput="adjustOpacity('{desc_id}', this.value)"></label>
+                <label>Logo Transparency: <input type="range" min="0" max="100" value="100" class="slider" id="logoSlider_{index}" oninput="adjustOpacity('{logo_id}', this.value)"></label>
             </div>
         """
         html_parts.append(html_part)
@@ -172,7 +177,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
     # Generate JavaScript for each image
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
             function applyInteractions(elementId) {
                 interact('#' + elementId).draggable({
@@ -200,6 +204,10 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 });
             }
 
+            function adjustOpacity(elementId, value) {
+                document.getElementById(elementId).style.opacity = value / 100;
+            }
+
             function dragMoveListener(event) {
                 var target = event.target,
                     x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
@@ -216,8 +224,17 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                target.style.width = event.rect.width + 'px';
-                target.style.height = event.rect.height + 'px';
+                // Ensure the background fits tightly around the text with padding
+                target.style.width = 'auto';
+                target.style.height = 'auto';
+                target.style.whiteSpace = 'nowrap';
+
+                // Calculate and set the new font size based on the container size
+                let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
+                target.style.fontSize = newFontSize + 'px';
+
+                // Keep the padding consistent around the text and logo
+                target.style.padding = '10px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
@@ -226,25 +243,28 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
+
+                // Adjust the logo resizing
+                if (target.id.includes('logoImage')) {
+                    let img = target.querySelector('img');
+                    img.style.width = event.rect.width + 'px';
+                    img.style.height = event.rect.height + 'px';
+                }
             }
 
-            function takeScreenshot(elementId) {
-                html2canvas(document.querySelector("#" + elementId)).then(canvas => {
-                    var link = document.createElement('a');
-                    link.href = canvas.toDataURL('image/png');
-                    link.download = elementId + '.png';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                });
-            }
+            // Apply interactions to each element with unique IDs
+    """
+    for index in range(len(images_data)):
+        js_part += f"""
+            applyInteractions('ctaText_{index}');
+            applyInteractions('descText_{index}');
+            applyInteractions('logoImage_{index}');
+            adjustOpacity('ctaText_{index}', 100);
+            adjustOpacity('descText_{index}', 100);
+            adjustOpacity('logoImage_{index}', 100);
+        """
 
-            // Apply interactions to each element
-            for (let i = 0; i < """ + str(len(images_data)) + """; i++) {
-                applyInteractions('ctaText_' + i);
-                applyInteractions('descText_' + i);
-                applyInteractions('logoImage_' + i);
-            }
+    js_part += """
         </script>
     """
 
