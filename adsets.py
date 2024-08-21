@@ -176,7 +176,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
     # Generate JavaScript for each image
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
             function applyInteractions(elementId) {
                 interact('#' + elementId).draggable({
@@ -282,8 +281,11 @@ def save_and_download_images(images_data, logo_image):
         font = ImageFont.truetype(font_path, font_size) if os.path.exists(font_path) else ImageFont.load_default()
 
         # Calculate text size and position
-        cta_text_size = draw.textsize(data['call_to_action_text'], font=font)
-        desc_text_size = draw.textsize(data['description_text'], font=font)
+        cta_text_bbox = draw.textbbox((0, 0), data['call_to_action_text'], font=font)
+        desc_text_bbox = draw.textbbox((0, 0), data['description_text'], font=font)
+
+        cta_text_size = (cta_text_bbox[2] - cta_text_bbox[0], cta_text_bbox[3] - cta_text_bbox[1])
+        desc_text_size = (desc_text_bbox[2] - desc_text_bbox[0], desc_text_bbox[3] - desc_text_bbox[1])
 
         cta_position = (50, 50)
         desc_position = (50, 150)
