@@ -251,5 +251,57 @@ def add_draggable_functionality(images_data, img_width, img_height):
     # Combine HTML and JS into the final component
     st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
 
+def save_and_download_images(images_data, logo_image):
+    for index, data in enumerate(images_data):
+        img = data['image']
+        draw = ImageDraw.Draw(img)
+
+        # Font settings
+        font_path = "arial.ttf"  # Update with the path to a valid .ttf font file if necessary
+        font_size = 20
+        font = ImageFont.truetype(font_path, font_size) if os.path.exists(font_path) else ImageFont.load_default()
+
+        # Calculate text size and position
+        cta_text_bbox = draw.textbbox((0, 0), data['call_to_action_text'], font=font)
+        desc_text_bbox = draw.textbbox((0, 0), data['description_text'], font=font)
+
+        cta_text_size = (cta_text_bbox[2] - cta_text_bbox[0], cta_text_bbox[3] - cta_text_bbox[1])
+        desc_text_size = (desc_text_bbox[2] - desc_text_bbox[0], desc_text_bbox[3] - desc_text_bbox[1])
+
+        cta_position = (50, 50)
+        desc_position = (50, 150)
+
+        # Draw the CTA and Description texts with background
+        draw.rectangle(
+            [cta_position, (cta_position[0] + cta_text_size[0] + 20, cta_position[1] + cta_text_size[1] + 10)],
+            fill=data['cta_bg_color'],
+            outline=data['cta_bg_color'],
+        )
+        draw.text((cta_position[0] + 10, cta_position[1] + 5), data['call_to_action_text'], fill=data['cta_text_color'], font=font)
+
+        draw.rectangle(
+            [desc_position, (desc_position[0] + desc_text_size[0] + 20, desc_position[1] + desc_text_size[1] + 10)],
+            fill=data['desc_bg_color'],
+            outline=data['desc_bg_color'],
+        )
+        draw.text((desc_position[0] + 10, desc_position[1] + 5), data['description_text'], fill(data['desc_text_color'], font=font)
+
+        # Place the logo on the image
+        if logo_image:
+            logo_position = (50, 250)
+            logo_resized = logo_image.resize((100, 100), Image.LANCZOS)
+            img.paste(logo_resized, logo_position, logo_resized)
+
+        # Save the image to a BytesIO object
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+
+        # Display download link
+        st.markdown(
+            f'<a href="data:image/png;base64,{img_str}" download="final_image_{index}.png">Download final_image_{index}.png</a>',
+            unsafe_allow_html=True
+        )
+
 if __name__ == "__main__":
     main()
