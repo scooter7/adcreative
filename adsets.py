@@ -224,9 +224,17 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Set the element's style
-                target.style.width = event.rect.width + 'px';
-                target.style.height = event.rect.height + 'px';
+                // Ensure the background fits tightly around the text with padding
+                target.style.width = 'auto';
+                target.style.height = 'auto';
+                target.style.whiteSpace = 'nowrap';
+
+                // Calculate and set the new font size based on the container size
+                let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
+                target.style.fontSize = newFontSize + 'px';
+
+                // Keep the padding consistent around the text and logo
+                target.style.padding = '10px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
@@ -235,6 +243,13 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
+
+                // Adjust the logo resizing
+                if (target.id.includes('logoImage')) {
+                    let img = target.querySelector('img');
+                    img.style.width = event.rect.width + 'px';
+                    img.style.height = event.rect.height + 'px';
+                }
             }
 
             // Apply interactions to each element with unique IDs
@@ -244,6 +259,9 @@ def add_draggable_functionality(images_data, img_width, img_height):
             applyInteractions('ctaText_{index}');
             applyInteractions('descText_{index}');
             applyInteractions('logoImage_{index}');
+            adjustOpacity('ctaText_{index}', 100);
+            adjustOpacity('descText_{index}', 100);
+            adjustOpacity('logoImage_{index}', 100);
         """
 
     js_part += """
