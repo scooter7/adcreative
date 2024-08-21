@@ -2,7 +2,7 @@ import os
 import streamlit as st
 import base64
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 # Main function to handle the Streamlit app logic
 def main():
@@ -12,11 +12,13 @@ def main():
     uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
 
     logo_base64 = None
+    logo_image = None
     if uploaded_logo:
         logo = Image.open(uploaded_logo)
         buffered_logo = BytesIO()
         logo.save(buffered_logo, format="PNG")
         logo_base64 = base64.b64encode(buffered_logo.getvalue()).decode()
+        logo_image = logo
 
     if uploaded_images:
         st.write("Images uploaded successfully!")
@@ -100,7 +102,8 @@ def main():
                                     'cta_text_color': call_to_action_text_color,
                                     'desc_bg_color': description_bg_color,
                                     'desc_text_color': description_text_color,
-                                    'text_shape': text_shape
+                                    'text_shape': text_shape,
+                                    'image': img_resized
                                 })
             else:
                 # Produce images without mixing CTAs and Descriptions
@@ -122,10 +125,14 @@ def main():
                                 'cta_text_color': call_to_action_text_color,
                                 'desc_bg_color': description_bg_color,
                                 'desc_text_color': description_text_color,
-                                'text_shape': text_shape
+                                'text_shape': text_shape,
+                                'image': img_resized
                             })
 
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
+
+            # Trigger the download after rendering and manipulation
+            save_and_download_images(images_data, logo_image)
 
 def add_draggable_functionality(images_data, img_width, img_height):
     html_parts = []
@@ -245,25 +252,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 }
             }
 
-            function saveImage() {
-                console.log("Merge and Download button clicked");
-                var images = document.querySelectorAll("[id^='imageContainer_']");
-                images.forEach(function(imageContainer, index) {
-                    html2canvas(imageContainer).then(function(canvas) {
-                        console.log("Canvas generated for image " + index + ", preparing download...");
-                        var dataURL = canvas.toDataURL('image/png');
-                        var link = document.createElement('a');
-                        link.href = dataURL;
-                        link.download = 'final_image_' + index + '.png';
-                        console.log("Triggering download for image " + index + "...");
-                        link.click();
-                        console.log("Download triggered for image " + index + ".");
-                    }).catch(function(error) {
-                        console.error("Error capturing the image " + index + ": ", error);
-                    });
-                });
-            }
-
             // Apply interactions to each element with unique IDs
     """
     for index in range(len(images_data)):
@@ -277,12 +265,59 @@ def add_draggable_functionality(images_data, img_width, img_height):
         """
 
     js_part += """
-            saveImage();  // Trigger the download after applying interactions
         </script>
     """
 
     # Combine HTML and JS into the final component
     st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
+
+def save_and_download_images(images_data, logo_image):
+    for index, data in enumerate(images_data):
+        img = data['image']
+        draw = ImageDraw.Draw(img)
+
+        # Font settings
+        font_path = "arial.ttf"  # Update with the path to a valid .ttf font file if necessary
+        font_size = 20
+        font = ImageFont.truetype(font_path, font_size) if os.path.exists(font_path) else ImageFont.load_default()
+
+        # Calculate text size and position
+        cta_text_size = draw.textsize(data['call_to_action_text'], font=font)
+        desc_text_size = draw.textsize(data['description_text'], font=font)
+
+        cta_position = (50, 50)
+        desc_position = (50, 150)
+
+        # Draw the CTA and Description texts with background
+        draw.rectangle(
+            [cta_position, (cta_position[0] + cta_text_size[0] + 20, cta_position[1] + cta_text_size[1] + 10)],
+            fill=data['cta_bg_color'],
+            outline=data['cta_bg_color'],
+        )
+        draw.text((cta_position[0] + 10, cta_position[1] + 5), data['call_to_action_text'], fill=data['cta_text_color'], font=font)
+
+        draw.rectangle(
+            [desc_position, (desc_position[0] + desc_text_size[0] + 20, desc_position[1] + desc_text_size[1] + 10)],
+            fill=data['desc_bg_color'],
+            outline=data['desc_bg_color'],
+        )
+        draw.text((desc_position[0] + 10, desc_position[1] + 5), data['description_text'], fill=data['desc_text_color'], font=font)
+
+        # Place the logo on the image
+        if logo_image:
+            logo_position = (50, 250)
+            img.paste(logo_image.resize((100, 100)), logo_position, logo_image.convert("RGBA"))
+
+        # Save the image to a BytesIO object
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+
+        # Display download link
+        st.markdown(
+            f'<a href="data:image/png;base64,{img_str}" download="final_image_{index}.png">Download final_image_{index}.png</a>',
+            unsafe_allow_html=True
+        )
 
 if __name__ == "__main__":
     main()
