@@ -209,6 +209,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
             }
 
             function dragMoveListener(event) {
+                console.log("Dragging:", event.target.id); // Logging for drag event
                 var target = event.target,
                     x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
                     y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
@@ -220,6 +221,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
             }
 
             function resizeMoveListener(event) {
+                console.log("Resizing:", event.target.id); // Logging for resize event
                 var target = event.target,
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
