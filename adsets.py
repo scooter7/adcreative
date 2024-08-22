@@ -145,10 +145,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
         logo_id = f"logoImage_{index}"
 
         # Determine border-radius based on selected shape
-        if data['text_shape'] == "Pill-shaped":
-            border_radius = "50px"  # Making the container pill-shaped
-        else:
-            border_radius = "0px"  # Rectangle
+        border_radius = "50px" if data['text_shape'] == "Pill-shaped" else "0px"
 
         # Generate HTML for each image
         html_part = f"""
@@ -174,7 +171,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
     # Combine all HTML parts into a single string
     html_content = "\n".join(html_parts)
 
-    # Generate JavaScript for each image
+    # JavaScript initialization code
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
         <script>
@@ -224,17 +221,8 @@ def add_draggable_functionality(images_data, img_width, img_height):
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                // Ensure the background fits tightly around the text with padding
-                target.style.width = 'auto';
-                target.style.height = 'auto';
-                target.style.whiteSpace = 'nowrap';
-
-                // Calculate and set the new font size based on the container size
-                let newFontSize = Math.min(event.rect.width, event.rect.height) / 5;
-                target.style.fontSize = newFontSize + 'px';
-
-                // Keep the padding consistent around the text and logo
-                target.style.padding = '10px';
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
 
                 x += event.deltaRect.left;
                 y += event.deltaRect.top;
@@ -247,8 +235,8 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 // Adjust the logo resizing
                 if (target.id.includes('logoImage')) {
                     let img = target.querySelector('img');
-                    img.style.width = event.rect.width + 'px';
-                    img.style.height = event.rect.height + 'px';
+                    img.style.width = '100%';
+                    img.style.height = 'auto';
                 }
             }
 
