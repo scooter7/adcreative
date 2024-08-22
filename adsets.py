@@ -2,7 +2,7 @@ import os
 import streamlit as st
 import base64
 from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 # Main function to handle the Streamlit app logic
 def main():
@@ -12,14 +12,11 @@ def main():
     uploaded_logo = st.file_uploader("Upload logo image", type=["jpg", "jpeg", "png"])
 
     logo_base64 = None
-    logo_image = None
     if uploaded_logo:
         logo = Image.open(uploaded_logo)
-        logo = logo.convert("RGBA")  # Ensure logo is in RGBA format
         buffered_logo = BytesIO()
         logo.save(buffered_logo, format="PNG")
         logo_base64 = base64.b64encode(buffered_logo.getvalue()).decode()
-        logo_image = logo
 
     if uploaded_images:
         st.write("Images uploaded successfully!")
@@ -103,8 +100,7 @@ def main():
                                     'cta_text_color': call_to_action_text_color,
                                     'desc_bg_color': description_bg_color,
                                     'desc_text_color': description_text_color,
-                                    'text_shape': text_shape,
-                                    'image': img_resized
+                                    'text_shape': text_shape
                                 })
             else:
                 # Produce images without mixing CTAs and Descriptions
@@ -126,14 +122,10 @@ def main():
                                 'cta_text_color': call_to_action_text_color,
                                 'desc_bg_color': description_bg_color,
                                 'desc_text_color': description_text_color,
-                                'text_shape': text_shape,
-                                'image': img_resized
+                                'text_shape': text_shape
                             })
 
             add_draggable_functionality(images_data, dimensions[0], dimensions[1])
-
-            # Trigger the download after rendering and manipulation
-            save_and_download_images(images_data, logo_image)
 
 def add_draggable_functionality(images_data, img_width, img_height):
     html_parts = []
@@ -177,6 +169,7 @@ def add_draggable_functionality(images_data, img_width, img_height):
     # Generate JavaScript for each image
     js_part = """
         <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
         <script>
             function applyInteractions(elementId) {
                 interact('#' + elementId).draggable({
@@ -209,7 +202,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
             }
 
             function dragMoveListener(event) {
-                console.log("Dragging:", event.target.id); // Logging for drag event
                 var target = event.target,
                     x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
                     y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
@@ -221,7 +213,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
             }
 
             function resizeMoveListener(event) {
-                console.log("Resizing:", event.target.id); // Logging for resize event
                 var target = event.target,
                     x = (parseFloat(target.getAttribute('data-x')) || 0),
                     y = (parseFloat(target.getAttribute('data-y')) || 0);
@@ -254,6 +245,25 @@ def add_draggable_functionality(images_data, img_width, img_height):
                 }
             }
 
+            function saveImage() {
+                console.log("Merge and Download button clicked");
+                var images = document.querySelectorAll("[id^='imageContainer_']");
+                images.forEach(function(imageContainer, index) {
+                    html2canvas(imageContainer).then(function(canvas) {
+                        console.log("Canvas generated for image " + index + ", preparing download...");
+                        var dataURL = canvas.toDataURL('image/png');
+                        var link = document.createElement('a');
+                        link.href = dataURL;
+                        link.download = 'final_image_' + index + '.png';
+                        console.log("Triggering download for image " + index + "...");
+                        link.click();
+                        console.log("Download triggered for image " + index + ".");
+                    }).catch(function(error) {
+                        console.error("Error capturing the image " + index + ": ", error);
+                    });
+                });
+            }
+
             // Apply interactions to each element with unique IDs
     """
     for index in range(len(images_data)):
@@ -272,58 +282,6 @@ def add_draggable_functionality(images_data, img_width, img_height):
 
     # Combine HTML and JS into the final component
     st.components.v1.html(html_content + js_part, height=img_height * len(images_data) + 300)
-
-def save_and_download_images(images_data, logo_image):
-    for index, data in enumerate(images_data):
-        img = data['image']
-        draw = ImageDraw.Draw(img)
-
-        # Font settings
-        font_path = "arial.ttf"  # Update with the path to a valid .ttf font file if necessary
-        font_size = 20
-        font = ImageFont.truetype(font_path, font_size) if os.path.exists(font_path) else ImageFont.load_default()
-
-        # Calculate text size and position
-        cta_text_bbox = draw.textbbox((0, 0), data['call_to_action_text'], font=font)
-        desc_text_bbox = draw.textbbox((0, 0), data['description_text'], font=font)
-
-        cta_text_size = (cta_text_bbox[2] - cta_text_bbox[0], cta_text_bbox[3] - cta_text_bbox[1])
-        desc_text_size = (desc_text_bbox[2] - desc_text_bbox[0], desc_text_bbox[3] - desc_text_bbox[1])
-
-        cta_position = (50, 50)
-        desc_position = (50, 150)
-
-        # Draw the CTA and Description texts with background
-        draw.rectangle(
-            [cta_position, (cta_position[0] + cta_text_size[0] + 20, cta_position[1] + cta_text_size[1] + 10)],
-            fill=data['cta_bg_color'],
-            outline=data['cta_bg_color'],
-        )
-        draw.text((cta_position[0] + 10, cta_position[1] + 5), data['call_to_action_text'], fill=data['cta_text_color'], font=font)
-
-        draw.rectangle(
-            [desc_position, (desc_position[0] + desc_text_size[0] + 20, desc_position[1] + desc_text_size[1] + 10)],
-            fill=data['desc_bg_color'],
-            outline=data['desc_bg_color'],
-        )
-        draw.text((desc_position[0] + 10, desc_position[1] + 5), data['description_text'], fill=data['desc_text_color'], font=font)
-
-        # Place the logo on the image
-        if logo_image:
-            logo_position = (50, 250)
-            logo_resized = logo_image.resize((100, 100), Image.LANCZOS)
-            img.paste(logo_resized, logo_position, logo_resized)
-
-        # Save the image to a BytesIO object
-        buffered = BytesIO()
-        img.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
-
-        # Display download link
-        st.markdown(
-            f'<a href="data:image/png;base64,{img_str}" download="final_image_{index}.png">Download final_image_{index}.png</a>',
-            unsafe_allow_html=True
-        )
 
 if __name__ == "__main__":
     main()
